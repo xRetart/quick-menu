@@ -1,6 +1,9 @@
-use std::{io, str::FromStr, fmt::{Formatter, self, Display}};
+use std::{
+    fmt::{self, Display, Formatter},
+    io,
+    str::FromStr,
+};
 
-#[derive(Clone)]
 pub struct MenuOption {
     pub key: char,
     pub value: String,
@@ -14,7 +17,9 @@ impl FromStr for MenuOption {
         let key = chars.next().ok_or("key not vailable")?;
 
         let mut chars = chars.skip_while(whitespace);
-        (matches!(chars.next(), Some(':'))).then_some(()).ok_or("no seperator")?;
+        (matches!(chars.next(), Some(':')))
+            .then_some(())
+            .ok_or("no seperator")?;
         let chars = chars.skip_while(whitespace);
 
         let value = chars.collect();
@@ -28,15 +33,10 @@ impl Display for MenuOption {
     }
 }
 
-
 pub fn from_stdin() -> io::Result<Vec<MenuOption>> {
     use io::{stdin, BufRead};
 
     let parse = |line: String| line.parse::<MenuOption>().unwrap();
-   
-    stdin()
-        .lock()
-        .lines()
-        .map(|line| line.map(parse))
-        .collect()
+
+    stdin().lock().lines().map(|line| line.map(parse)).collect()
 }

@@ -1,4 +1,12 @@
-use {tui::{Frame, backend::Backend, widgets::{ListState, ListItem, List}, style::{Style, Color}}, crate::parse::MenuOption};
+use {
+    crate::parse::MenuOption,
+    tui::{
+        backend::Backend,
+        style::{Color, Style},
+        widgets::{List, ListItem, ListState},
+        Frame,
+    },
+};
 
 pub struct OptionsState {
     length: usize,
@@ -6,15 +14,24 @@ pub struct OptionsState {
 }
 impl OptionsState {
     pub fn with_length(length: usize) -> Self {
-        Self { length, state: ListState::default() }
+        Self {
+            length,
+            state: ListState::default(),
+        }
     }
     pub fn next(&mut self) {
-        let new = self.state.selected().map_or(0, |index| (index + 1) % self.length);
+        let new = self
+            .state
+            .selected()
+            .map_or(0, |index| (index + 1) % self.length);
         self.state.select(Some(new))
     }
     pub fn previous(&mut self) {
         let last = self.length - 1;
-        let new = self.state.selected().map_or(last, |index| index.checked_sub(1).unwrap_or(last));
+        let new = self
+            .state
+            .selected()
+            .map_or(last, |index| index.checked_sub(1).unwrap_or(last));
         self.state.select(Some(new))
     }
     pub fn unselect(&mut self) {
@@ -30,16 +47,16 @@ pub struct OptionsList<'l> {
     pub list: List<'l>,
 }
 impl<'l> OptionsList<'l> {
-    pub fn from_options(options: Vec<MenuOption>) -> Self {
+    pub fn from_options(options: &[MenuOption]) -> Self {
         let length = options.len();
-        let items = options.into_iter().map(Self::make_item).collect::<Vec<_>>();
+        let items = options.iter().map(Self::make_item).collect::<Vec<_>>();
 
         let state = OptionsState::with_length(length);
         let style = Style::default().bg(Color::Green).fg(Color::DarkGray);
         let list = List::new(items).highlight_style(style);
         Self { state, list }
     }
-    fn make_item(option: MenuOption) -> ListItem<'l> {
+    fn make_item(option: &MenuOption) -> ListItem<'l> {
         ListItem::new(option.to_string())
     }
 }
@@ -48,7 +65,7 @@ pub struct Ui<'o> {
     pub options: OptionsList<'o>,
 }
 impl<'o> Ui<'o> {
-    pub fn with_options(options: Vec<MenuOption>) -> Self {
+    pub fn with_options(options: &[MenuOption]) -> Self {
         let options = OptionsList::from_options(options);
         Self { options }
     }
@@ -56,7 +73,7 @@ impl<'o> Ui<'o> {
         frame.render_stateful_widget(
             self.options.list.clone(),
             frame.size(),
-            &mut self.options.state.state
+            &mut self.options.state.state,
         )
     }
 }

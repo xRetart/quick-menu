@@ -1,4 +1,4 @@
 pub mod terminal;
 pub mod ui;
 
-pub use {ui::Ui, terminal::Terminal};
+pub use {terminal::Terminal, ui::Ui};
