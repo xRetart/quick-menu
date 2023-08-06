@@ -1,5 +1,6 @@
 use {
-    std::io::{self, Result, Stderr},
+    anyhow::{Context, Result},
+    std::io::{self, Stderr},
     tui::{backend::CrosstermBackend, Frame},
 };
 pub type Backend = CrosstermBackend<Stderr>;
@@ -10,9 +11,9 @@ impl Terminal {
     where
         F: FnOnce(&mut Terminal) -> R,
     {
-        let mut terminal = Self::open()?;
+        let mut terminal = Self::open().context("Opening terminal failed.")?;
         let result = action(&mut terminal);
-        terminal.close()?;
+        terminal.close().context("Closing terminal failed.")?;
         Ok(result)
     }
     pub fn draw<F: FnOnce(&mut Frame<Backend>)>(&mut self, render: F) -> Result<()> {
@@ -29,11 +30,13 @@ impl Terminal {
         };
         use io::stderr;
 
-        enable_raw_mode()?;
+        enable_raw_mode().context("Changing terminal mode to raw failed.")?;
         let mut stderr = stderr();
-        execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
+        execute!(stderr, EnterAlternateScreen, EnableMouseCapture)
+            .context("Entering alternate screen failed.")?;
         let backend = Backend::new(stderr);
-        let inner = tui::Terminal::new(backend)?;
+        let inner =
+            tui::Terminal::new(backend).context("Creating internal tui terminal failed.")?;
         Ok(Self(inner))
     }
     fn close(self) -> Result<()> {
@@ -44,13 +47,14 @@ impl Terminal {
         };
 
         let Self(mut inner) = self;
-        disable_raw_mode()?;
+        disable_raw_mode().context("Changing terminal mode from raw failed.")?;
         execute!(
             inner.backend_mut(),
             LeaveAlternateScreen,
             DisableMouseCapture
-        )?;
-        inner.show_cursor()?;
+        )
+        .context("Leaving alternate screen failed.")?;
+        inner.show_cursor().context("Showing cursor failed.")?;
         Ok(())
     }
 }

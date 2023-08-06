@@ -3,9 +3,9 @@ use {
         interface::{Terminal, Ui},
         parse::MenuOption,
     },
+    anyhow::{Context, Result},
     crossterm::event::KeyCode,
     crossterm::event::{self, KeyEvent},
-    std::io::Result,
 };
 
 pub fn event_loop(
@@ -15,15 +15,17 @@ pub fn event_loop(
 ) -> Result<Option<usize>> {
     let mut choice = None;
     while choice.is_none() {
-        terminal.draw(|frame| ui.render(frame))?;
-        choice = handle_event(&mut ui, options)?;
+        terminal
+            .draw(|frame| ui.render(frame))
+            .context("Drawing the rendered inteface to the terminal failed.")?;
+        choice = handle_event(&mut ui, options).context("Handling the incoming event failed.")?;
     }
     Ok(choice.unwrap())
 }
 fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Option<usize>>> {
     use event::{read, Event};
 
-    match read()? {
+    match read().context("Reading event from backend failed.")? {
         Event::Key(key) => Ok(handle_key(key, ui, options)),
         _ => Ok(None),
     }

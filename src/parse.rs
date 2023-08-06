@@ -1,7 +1,9 @@
-use std::{
-    fmt::{self, Display, Formatter},
-    io,
-    str::FromStr,
+use {
+    anyhow::{anyhow, Error, Result},
+    std::{
+        fmt::{self, Display, Formatter},
+        str::FromStr,
+    },
 };
 
 pub struct MenuOption {
@@ -9,17 +11,20 @@ pub struct MenuOption {
     pub value: String,
 }
 impl FromStr for MenuOption {
-    type Err = &'static str;
+    type Err = Error;
     fn from_str(line: &str) -> Result<Self, Self::Err> {
+        use anyhow::ensure;
+
         let whitespace = |c: &char| c.is_whitespace();
         let mut chars = line.chars();
 
-        let key = chars.next().ok_or("key not vailable")?;
+        let key = chars.next().ok_or(anyhow!("Expected a key."))?;
 
         let mut chars = chars.skip_while(whitespace);
-        (matches!(chars.next(), Some(':')))
-            .then_some(())
-            .ok_or("no seperator")?;
+        ensure!(
+            matches!(chars.next(), Some(':')),
+            anyhow!("Expected a separator")
+        );
         let chars = chars.skip_while(whitespace);
 
         let value = chars.collect();
@@ -33,10 +38,20 @@ impl Display for MenuOption {
     }
 }
 
-pub fn from_stdin() -> io::Result<Vec<MenuOption>> {
-    use io::{stdin, BufRead};
+pub fn from_stdin() -> Result<Vec<MenuOption>> {
+    use {
+        anyhow::Context,
+        std::io::{self, stdin, BufRead},
+    };
 
-    let parse = |line: String| line.parse::<MenuOption>().unwrap();
+    let parse = |line: String| {
+        line.parse::<MenuOption>()
+            .with_context(|| format!("Failed to parse following line from stdin: \"{}\"", line))
+    };
+    let parse_line = |line: io::Result<_>| {
+        line.context("Reading line from stdin failed.")
+            .and_then(parse)
+    };
 
-    stdin().lock().lines().map(|line| line.map(parse)).collect()
+    stdin().lock().lines().map(parse_line).collect()
 }

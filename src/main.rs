@@ -5,11 +5,7 @@ mod events;
 mod interface;
 mod parse;
 
-use {
-    interface::Ui,
-    parse::MenuOption,
-    std::io::{self, Result},
-};
+use {anyhow::Result, interface::Ui, parse::MenuOption};
 
 #[unix_sigpipe = "inherit"]
 fn main() -> Result<()> {
@@ -23,7 +19,7 @@ fn main() -> Result<()> {
     print_choice(choice, &options)
 }
 fn print_choice(choice: Option<usize>, options: &[MenuOption]) -> Result<()> {
-    use io::{stdout, Write};
+    use std::io::{stdout, Write};
 
     if let Some(index) = choice {
         let mut stdout = stdout().lock();
