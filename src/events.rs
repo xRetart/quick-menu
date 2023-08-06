@@ -4,7 +4,6 @@ use {
         parse::MenuOption,
     },
     anyhow::{Context, Result},
-    crossterm::event::KeyCode,
     crossterm::event::{self, KeyEvent},
 };
 
@@ -30,16 +29,24 @@ fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Option<usi
         _ => Ok(None),
     }
 }
-#[allow(clippy::match_like_matches_macro)]
 fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Option<usize>> {
-    match key.code {
-        KeyCode::Down => ui.options.state.next(),
-        KeyCode::Up => ui.options.state.previous(),
-        KeyCode::Left => ui.options.state.unselect(),
-        KeyCode::Char(' ') => return ui.options.state.selected().map(Some),
-        KeyCode::Char(key) => return map_key(key, options).map(Some),
-        KeyCode::Enter => return Some(Some(ui.options.state.selected().unwrap_or(0))),
-        KeyCode::Esc => return Some(None),
+    use event::{KeyCode, KeyModifiers};
+    match key.modifiers {
+        KeyModifiers::NONE => match key.code {
+            KeyCode::Down => ui.options.state.next(),
+            KeyCode::Up => ui.options.state.previous(),
+            KeyCode::Left => ui.options.state.unselect(),
+            KeyCode::Char(' ') | KeyCode::Right => return ui.options.state.selected().map(Some),
+            KeyCode::Char(key) => return map_key(key, options).map(Some),
+            KeyCode::Enter => return Some(Some(ui.options.state.selected().unwrap_or(0))),
+            KeyCode::Esc => return Some(None),
+            _ => {}
+        },
+        KeyModifiers::CONTROL => match key.code {
+            KeyCode::Char('n') => ui.options.state.next(),
+            KeyCode::Char('e') => ui.options.state.previous(),
+            _ => (),
+        },
         _ => {}
     }
     None

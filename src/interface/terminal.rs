@@ -32,8 +32,12 @@ impl Terminal {
 
         enable_raw_mode().context("Changing terminal mode to raw failed.")?;
         let mut stderr = stderr();
-        execute!(stderr, EnterAlternateScreen, EnableMouseCapture)
-            .context("Entering alternate screen failed.")?;
+        execute!(
+            stderr,
+            EnterAlternateScreen,
+            EnableMouseCapture,
+        )
+        .context("Entering alternate screen failed.")?;
         let backend = Backend::new(stderr);
         let inner =
             tui::Terminal::new(backend).context("Creating internal tui terminal failed.")?;
@@ -51,7 +55,7 @@ impl Terminal {
         execute!(
             inner.backend_mut(),
             LeaveAlternateScreen,
-            DisableMouseCapture
+            DisableMouseCapture,
         )
         .context("Leaving alternate screen failed.")?;
         inner.show_cursor().context("Showing cursor failed.")?;

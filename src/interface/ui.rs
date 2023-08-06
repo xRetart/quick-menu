@@ -48,11 +48,16 @@ pub struct OptionsList<'l> {
 }
 impl<'l> OptionsList<'l> {
     pub fn from_options(options: &[MenuOption]) -> Self {
+        use tui::style::Modifier;
+        let style = Style::default()
+            .add_modifier(Modifier::BOLD)
+            .bg(Color::Green)
+            .fg(Color::DarkGray);
+
         let length = options.len();
         let items = options.iter().map(Self::make_item).collect::<Vec<_>>();
 
         let state = OptionsState::with_length(length);
-        let style = Style::default().bg(Color::Green).fg(Color::DarkGray);
         let list = List::new(items).highlight_style(style);
         Self { state, list }
     }
