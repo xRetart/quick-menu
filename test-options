@@ -1,4 +1,4 @@
-a : option for a
-b : option for c
-x : special option for x
-$ : special option for $
+a : option for a|Option A
+b : option for b|Option B
+x : special option for x|Special Option X
+$ : special option for $|Special Option '$'

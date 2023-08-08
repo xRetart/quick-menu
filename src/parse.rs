@@ -8,7 +8,8 @@ use {
 
 pub struct MenuOption {
     pub key: char,
-    pub value: String,
+    pub output: String,
+    pub display: String,
 }
 impl FromStr for MenuOption {
     type Err = Error;
@@ -16,6 +17,7 @@ impl FromStr for MenuOption {
         use anyhow::ensure;
 
         let whitespace = |c: &char| c.is_whitespace();
+        let not_separator = |c: &char| c != &'|';
         let mut chars = line.chars();
 
         let key = chars.next().ok_or(anyhow!("Expected a key."))?;
@@ -25,16 +27,17 @@ impl FromStr for MenuOption {
             matches!(chars.next(), Some(':')),
             anyhow!("Expected a separator")
         );
-        let chars = chars.skip_while(whitespace);
+        let mut chars = chars.skip_while(whitespace);
 
-        let value = chars.collect();
+        let output = chars.by_ref().take_while(not_separator).collect::<String>();
+        let display = chars.collect();
 
-        Ok(Self { key, value })
+        Ok(Self { key, output, display })
     }
 }
 impl Display for MenuOption {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{} : {}", self.key, self.value)
+        write!(f, "{} : {}", self.key, self.display)
     }
 }
 

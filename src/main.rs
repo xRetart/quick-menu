@@ -23,7 +23,7 @@ fn print_choice(choice: Option<usize>, options: &[MenuOption]) -> Result<()> {
 
     if let Some(index) = choice {
         let mut stdout = stdout().lock();
-        stdout.write_all(options[index].value.as_bytes())?;
+        stdout.write_all(options[index].output.as_bytes())?;
         stdout.write_all("\n".as_bytes())?;
     }
     Ok(())
