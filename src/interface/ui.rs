@@ -1,3 +1,5 @@
+use tui::layout::Rect;
+
 use {
     crate::parse::MenuOption,
     tui::{
@@ -45,21 +47,27 @@ impl OptionsState {
 pub struct OptionsList<'l> {
     pub state: OptionsState,
     pub list: List<'l>,
+    pub width: u16,
+    pub height: u16,
 }
 impl<'l> OptionsList<'l> {
     pub fn from_options(options: &[MenuOption]) -> Self {
         use tui::style::Modifier;
+
         let style = Style::default()
             .add_modifier(Modifier::BOLD)
             .bg(Color::Green)
             .fg(Color::DarkGray);
+
+        let width = options.iter().map(|option| option.to_string().len()).max().unwrap_or(0).try_into().unwrap();
+        let height = options.len().try_into().unwrap();
 
         let length = options.len();
         let items = options.iter().map(Self::make_item).collect::<Vec<_>>();
 
         let state = OptionsState::with_length(length);
         let list = List::new(items).highlight_style(style);
-        Self { state, list }
+        Self { state, list, width, height }
     }
     fn make_item(option: &MenuOption) -> ListItem<'l> {
         ListItem::new(option.to_string())
@@ -75,10 +83,18 @@ impl<'o> Ui<'o> {
         Self { options }
     }
     pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>) {
-        frame.render_stateful_widget(
-            self.options.list.clone(),
-            frame.size(),
-            &mut self.options.state.state,
-        )
+        let centered = self.center_options(frame.size());
+        let options = self.options.list.clone();
+        let state = &mut self.options.state.state;
+
+        frame.render_stateful_widget(options, centered, state)
+    }
+    fn center_options(&self, outer: Rect) -> Rect {
+        let x = (outer.width - self.options.width) / 2;
+        let y = (outer.height - self.options.height) / 2;
+        let width = self.options.width;
+        let height = self.options.height;
+
+        Rect { x, y, width, height }
     }
 }
