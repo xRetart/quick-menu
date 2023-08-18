@@ -12,7 +12,7 @@ fn main() -> Result<()> {
     use {events::event_loop, interface::Terminal, parse::from_stdin};
 
     let options = from_stdin()?;
-    let ui = Ui::with_options(&options);
+    let ui = Ui::with_options(options.clone());
 
     let choice = Terminal::inside(|terminal| event_loop(terminal, ui, &options))??;
 

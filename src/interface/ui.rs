@@ -51,26 +51,57 @@ pub struct OptionsList<'l> {
     pub height: u16,
 }
 impl<'l> OptionsList<'l> {
-    pub fn from_options(options: &[MenuOption]) -> Self {
-        use tui::style::Modifier;
+    pub fn from_options(options: Vec<MenuOption>) -> Self {
+        use tui::{
+            style::Modifier,
+            widgets::{Block, BorderType, Borders},
+        };
 
-        let style = Style::default()
+        let style = Style::default();
+        let highlight_style = style
             .add_modifier(Modifier::BOLD)
             .bg(Color::Green)
             .fg(Color::DarkGray);
 
-        let width = options.iter().map(|option| option.to_string().len()).max().unwrap_or(0).try_into().unwrap();
-        let height = options.len().try_into().unwrap();
-
         let length = options.len();
-        let items = options.iter().map(Self::make_item).collect::<Vec<_>>();
 
         let state = OptionsState::with_length(length);
-        let list = List::new(items).highlight_style(style);
-        Self { state, list, width, height }
+        let width = options
+            .iter()
+            .map(|option| option.to_string().len())
+            .max()
+            .unwrap_or(0)
+            .try_into()
+            .unwrap();
+        let height = options.len().try_into().unwrap();
+
+        let items = options.into_iter().map(Self::make_item).collect::<Vec<_>>();
+        let block = Block::default()
+            .style(style)
+            .border_type(BorderType::Thick)
+            .borders(Borders::ALL)
+            .style(style);
+        let list = List::new(items)
+            .highlight_style(highlight_style)
+            .block(block);
+
+        Self {
+            state,
+            list,
+            width,
+            height,
+        }
     }
-    fn make_item(option: &MenuOption) -> ListItem<'l> {
-        ListItem::new(option.to_string())
+    fn make_item(option: MenuOption) -> ListItem<'l> {
+        use tui::text::{Span, Spans};
+
+        let normal = Style::default();
+        let inverted = normal.fg(Color::Black).bg(Color::White);
+
+        let key = Span::styled(format!(" {} ", option.key), inverted);
+        let option = Span::styled(format!(" {}", option.display), normal);
+
+        ListItem::new(Spans::from(vec![key, option]))
     }
 }
 
@@ -78,7 +109,7 @@ pub struct Ui<'o> {
     pub options: OptionsList<'o>,
 }
 impl<'o> Ui<'o> {
-    pub fn with_options(options: &[MenuOption]) -> Self {
+    pub fn with_options(options: Vec<MenuOption>) -> Self {
         let options = OptionsList::from_options(options);
         Self { options }
     }
@@ -90,11 +121,17 @@ impl<'o> Ui<'o> {
         frame.render_stateful_widget(options, centered, state)
     }
     fn center_options(&self, outer: Rect) -> Rect {
-        let x = (outer.width - self.options.width) / 2;
-        let y = (outer.height - self.options.height) / 2;
-        let width = self.options.width;
-        let height = self.options.height;
+        let width = self.options.width + 2;
+        let height = self.options.height + 2;
 
-        Rect { x, y, width, height }
+        let x = (outer.width - width) / 2;
+        let y = (outer.height - height) / 2;
+
+        Rect {
+            x,
+            y,
+            width,
+            height,
+        }
     }
 }

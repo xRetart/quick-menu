@@ -6,6 +6,7 @@ use {
     },
 };
 
+#[derive(Clone)]
 pub struct MenuOption {
     pub key: char,
     pub output: String,
@@ -32,7 +33,11 @@ impl FromStr for MenuOption {
         let output = chars.by_ref().take_while(not_separator).collect::<String>();
         let display = chars.collect();
 
-        Ok(Self { key, output, display })
+        Ok(Self {
+            key,
+            output,
+            display,
+        })
     }
 }
 impl Display for MenuOption {
