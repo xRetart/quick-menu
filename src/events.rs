@@ -4,7 +4,7 @@ use {
         parse::MenuOption,
     },
     anyhow::{Context, Result},
-    crossterm::event::{self, KeyEvent},
+    crossterm::event::{self, KeyEvent, MouseEvent},
 };
 
 pub fn event_loop(
@@ -26,8 +26,20 @@ fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Option<usi
 
     match read().context("Reading event from backend failed.")? {
         Event::Key(key) => Ok(handle_key(key, ui, options)),
+        Event::Mouse(mouse) => Ok(handle_mouse(mouse, ui).map(Some)),
         _ => Ok(None),
     }
+}
+fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
+    use crossterm::event::{MouseButton, MouseEventKind};
+    match mouse.kind {
+        MouseEventKind::ScrollUp => ui.options.state.previous(),
+        MouseEventKind::ScrollDown => ui.options.state.next(),
+        MouseEventKind::Down(MouseButton::Middle) => return ui.options.state.selected(),
+        MouseEventKind::Down(MouseButton::Left) => return ui.select(mouse.row, mouse.column),
+        _ => {}
+    }
+    None
 }
 fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Option<usize>> {
     use event::{KeyCode, KeyModifiers};

@@ -107,17 +107,37 @@ impl<'l> OptionsList<'l> {
 
 pub struct Ui<'o> {
     pub options: OptionsList<'o>,
+    last_area: Option<Rect>,
 }
 impl<'o> Ui<'o> {
     pub fn with_options(options: Vec<MenuOption>) -> Self {
         let options = OptionsList::from_options(options);
-        Self { options }
+        let last_area = None;
+        Self { options, last_area }
+    }
+    fn option_at(&self, row: u16, column: u16) -> Option<usize> {
+        let in_range = |x, (min, offset)| (min..=min + offset).contains(&x);
+        self.last_area.and_then(|area| {
+            (in_range(column, (area.x, area.width)) && in_range(column, (area.x, area.width)))
+                .then_some((row - area.y - 1) as usize)
+        })
+    }
+    pub fn select(&mut self, row: u16, column: u16) -> Option<usize> {
+        let position = self.option_at(row, column);
+        if position == self.options.state.selected() {
+            position
+        } else {
+            self.options.state.state.select(position);
+            None
+        }
     }
     pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>) {
-        let centered = self.center_options(frame.size());
+        let size = frame.size();
+        let centered = self.center_options(size);
         let options = self.options.list.clone();
         let state = &mut self.options.state.state;
 
+        self.last_area = Some(centered);
         frame.render_stateful_widget(options, centered, state)
     }
     fn center_options(&self, outer: Rect) -> Rect {
