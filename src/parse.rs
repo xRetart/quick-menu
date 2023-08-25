@@ -21,7 +21,7 @@ impl FromStr for MenuOption {
         let not_separator = |c: &char| c != &'|';
         let mut chars = line.chars();
 
-        let key = chars.next().ok_or(anyhow!("Expected a key."))?;
+        let key = chars.next().ok_or_else(|| anyhow!("Expected a key."))?;
 
         let mut chars = chars.skip_while(whitespace);
         ensure!(

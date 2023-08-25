@@ -9,7 +9,7 @@ pub struct Terminal(tui::Terminal<Backend>);
 impl Terminal {
     pub fn inside<R, F>(action: F) -> Result<R>
     where
-        F: FnOnce(&mut Terminal) -> R,
+        F: FnOnce(&mut Self) -> R,
     {
         let mut terminal = Self::open().context("Opening terminal failed.")?;
         let result = action(&mut terminal);

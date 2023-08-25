@@ -1,10 +1,6 @@
 #![feature(unix_sigpipe)]
 #![feature(map_try_insert)]
-#![warn(
-     clippy::pedantic,
-     clippy::all,
-     clippy::cargo,
- )]
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
 
 mod args;
 mod events;
@@ -13,9 +9,9 @@ mod parse;
 
 use {
     anyhow::Result,
+    events::Choice,
     interface::{ui::Colorscheme, Ui},
     parse::MenuOption,
-    events::Choice,
 };
 
 #[unix_sigpipe = "inherit"]
@@ -58,7 +54,7 @@ fn print_choice(choice: &Choice, options: &[MenuOption]) -> Result<()> {
     if let Choice::Chosen(index) = choice {
         let mut stdout = stdout().lock();
         stdout.write_all(options[*index].output.as_bytes())?;
-        stdout.write_all("\n".as_bytes())?;
+        stdout.write_all(b"\n")?;
     }
     Ok(())
 }

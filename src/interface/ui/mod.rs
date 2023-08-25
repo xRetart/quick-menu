@@ -42,7 +42,7 @@ impl<'o> Ui<'o> {
         self.last_area = Some(centered);
         frame.render_stateful_widget(options, centered, state);
     }
-    fn center_options(&self, outer: Rect) -> Rect {
+    const fn center_options(&self, outer: Rect) -> Rect {
         let width = self.options.width + 2;
         let height = self.options.height + 2;
 
