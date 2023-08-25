@@ -21,6 +21,7 @@ impl<'l> OptionsList<'l> {
         };
 
         let style = Style::default();
+        let border_style = style.fg(colorscheme.border);
         let highlight_style = style
             .add_modifier(Modifier::BOLD)
             .bg(colorscheme.selected.background)
@@ -53,6 +54,7 @@ impl<'l> OptionsList<'l> {
             .style(style)
             .border_type(BorderType::Thick)
             .borders(Borders::ALL)
+            .border_style(border_style)
             .style(style);
         let list = List::new(items)
             .highlight_style(highlight_style)

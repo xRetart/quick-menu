@@ -20,6 +20,9 @@ pub struct Cli {
 
     #[arg(long, default_value_t = Color(tui::style::Color::White))]
     pub color_key_bg: Color,
+
+    #[arg(long, default_value_t = Color(tui::style::Color::White))]
+    pub color_border: Color,
 }
 
 #[derive(Clone)]

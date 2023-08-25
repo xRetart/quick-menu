@@ -9,4 +9,5 @@ pub struct Colorscheme {
     pub selected: TextColor,
     pub unselected_display: TextColor,
     pub unselected_key: TextColor,
+    pub border: Color,
 }

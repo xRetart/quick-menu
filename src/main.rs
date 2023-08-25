@@ -41,6 +41,7 @@ fn main() -> Result<()> {
             foreground: args.color_key_fg.into(),
             background: args.color_key_bg.into(),
         },
+        border: args.color_border.into(),
     };
     let ui = Ui::new(options.clone(), &colorscheme);
 
