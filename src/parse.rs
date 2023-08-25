@@ -42,7 +42,12 @@ impl FromStr for MenuOption {
 }
 impl Display for MenuOption {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{} : {}", self.key, self.display)
+        let Self {
+            key,
+            output,
+            display: _,
+        } = self;
+        write!(f, "{key} : {output}")
     }
 }
 
@@ -54,7 +59,7 @@ pub fn from_stdin() -> Result<Vec<MenuOption>> {
 
     let parse = |line: String| {
         line.parse::<MenuOption>()
-            .with_context(|| format!("Failed to parse following line from stdin: \"{}\"", line))
+            .with_context(|| format!("Failed to parse following line from stdin: \"{line}\""))
     };
     let parse_line = |line: io::Result<_>| {
         line.context("Reading line from stdin failed.")

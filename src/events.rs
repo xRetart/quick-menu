@@ -7,11 +7,12 @@ use {
     crossterm::event::{self, KeyEvent, MouseEvent},
 };
 
-pub fn event_loop(
-    terminal: &mut Terminal,
-    mut ui: Ui,
-    options: &[MenuOption],
-) -> Result<Option<usize>> {
+pub enum Choice {
+    Chosen(usize),
+    None,
+}
+
+pub fn event_loop(terminal: &mut Terminal, mut ui: Ui, options: &[MenuOption]) -> Result<Choice> {
     let mut choice = None;
     while choice.is_none() {
         terminal
@@ -21,12 +22,12 @@ pub fn event_loop(
     }
     Ok(choice.unwrap())
 }
-fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Option<usize>>> {
+fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Choice>> {
     use event::{read, Event};
 
     match read().context("Reading event from backend failed.")? {
         Event::Key(key) => Ok(handle_key(key, ui, options)),
-        Event::Mouse(mouse) => Ok(handle_mouse(mouse, ui).map(Some)),
+        Event::Mouse(mouse) => Ok(handle_mouse(mouse, ui).map(Choice::Chosen)),
         _ => Ok(None),
     }
 }
@@ -41,17 +42,21 @@ fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
     }
     None
 }
-fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Option<usize>> {
+fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choice> {
     use event::{KeyCode, KeyModifiers};
     match key.modifiers {
         KeyModifiers::NONE => match key.code {
             KeyCode::Down => ui.options.state.next(),
             KeyCode::Up => ui.options.state.previous(),
             KeyCode::Left => ui.options.state.unselect(),
-            KeyCode::Char(' ') | KeyCode::Right => return ui.options.state.selected().map(Some),
-            KeyCode::Char(key) => return map_key(key, options).map(Some),
-            KeyCode::Enter => return Some(Some(ui.options.state.selected().unwrap_or(0))),
-            KeyCode::Esc => return Some(None),
+            KeyCode::Char(' ') | KeyCode::Right => {
+                return ui.options.state.selected().map(Choice::Chosen)
+            }
+            KeyCode::Char(key) => return map_key(key, options).map(Choice::Chosen),
+            KeyCode::Enter => {
+                return Some(Choice::Chosen(ui.options.state.selected().unwrap_or(0)))
+            }
+            KeyCode::Esc => return Some(Choice::None),
             _ => {}
         },
         KeyModifiers::CONTROL => match key.code {

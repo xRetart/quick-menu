@@ -1,29 +1,58 @@
 #![feature(unix_sigpipe)]
 #![feature(map_try_insert)]
 
+mod args;
 mod events;
 mod interface;
 mod parse;
 
-use {anyhow::Result, interface::Ui, parse::MenuOption};
+use {
+    anyhow::Result,
+    events::Choice,
+    interface::{ui::Colorscheme, Ui},
+    parse::MenuOption,
+};
 
 #[unix_sigpipe = "inherit"]
 fn main() -> Result<()> {
-    use {events::event_loop, interface::Terminal, parse::from_stdin};
+    use {
+        args::Cli,
+        clap::Parser,
+        events::event_loop,
+        interface::{ui::colorscheme::TextColor, Terminal},
+        parse::from_stdin,
+    };
+
+    let args = Cli::parse();
 
     let options = from_stdin()?;
-    let ui = Ui::with_options(options.clone());
+
+    let colorscheme = Colorscheme {
+        selected: TextColor {
+            foreground: args.color_selected_fg.into(),
+            background: args.color_selected_bg.into(),
+        },
+        unselected_display: TextColor {
+            foreground: args.color_unselected_fg.into(),
+            background: args.color_unselected_bg.into(),
+        },
+        unselected_key: TextColor {
+            foreground: args.color_key_fg.into(),
+            background: args.color_key_bg.into(),
+        },
+    };
+    let ui = Ui::new(options.clone(), &colorscheme);
 
     let choice = Terminal::inside(|terminal| event_loop(terminal, ui, &options))??;
 
-    print_choice(choice, &options)
+    print_choice(&choice, &options)
 }
-fn print_choice(choice: Option<usize>, options: &[MenuOption]) -> Result<()> {
+fn print_choice(choice: &Choice, options: &[MenuOption]) -> Result<()> {
     use std::io::{stdout, Write};
 
-    if let Some(index) = choice {
+    if let Choice::Chosen(index) = choice {
         let mut stdout = stdout().lock();
-        stdout.write_all(options[index].output.as_bytes())?;
+        stdout.write_all(options[*index].output.as_bytes())?;
         stdout.write_all("\n".as_bytes())?;
     }
     Ok(())
