@@ -3,17 +3,11 @@ use {anyhow::Result, clap::Parser, std::fmt::Display, std::str::FromStr};
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    #[arg(long, default_value_t = Color(tui::style::Color::DarkGray))]
+    #[arg(long, default_value_t = Color(tui::style::Color::Black))]
     pub color_selected_fg: Color,
 
     #[arg(long, default_value_t = Color(tui::style::Color::Green))]
     pub color_selected_bg: Color,
-
-    #[arg(long, default_value_t = Color(tui::style::Color::White))]
-    pub color_unselected_fg: Color,
-
-    #[arg(long, default_value_t = Color(tui::style::Color::Black))]
-    pub color_unselected_bg: Color,
 
     #[arg(long, default_value_t = Color(tui::style::Color::Black))]
     pub color_key_fg: Color,

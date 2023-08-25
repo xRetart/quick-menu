@@ -33,11 +33,7 @@ fn main() -> Result<()> {
             foreground: args.color_selected_fg.into(),
             background: args.color_selected_bg.into(),
         },
-        unselected_display: TextColor {
-            foreground: args.color_unselected_fg.into(),
-            background: args.color_unselected_bg.into(),
-        },
-        unselected_key: TextColor {
+        key: TextColor {
             foreground: args.color_key_fg.into(),
             background: args.color_key_bg.into(),
         },

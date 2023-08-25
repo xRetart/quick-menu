@@ -41,14 +41,7 @@ impl<'l> OptionsList<'l> {
 
         let items = options
             .into_iter()
-            .map(|text| {
-                Self::make_item(
-                    text,
-                    width,
-                    &colorscheme.unselected_display,
-                    &colorscheme.unselected_key,
-                )
-            })
+            .map(|text| Self::make_item(text, width, &colorscheme.key))
             .collect::<Vec<_>>();
         let block = Block::default()
             .style(style)
@@ -67,12 +60,7 @@ impl<'l> OptionsList<'l> {
             height,
         }
     }
-    fn make_item(
-        option: MenuOption,
-        width: u16,
-        display_color: &TextColor,
-        key_color: &TextColor,
-    ) -> ListItem<'l> {
+    fn make_item(option: MenuOption, width: u16, key_color: &TextColor) -> ListItem<'l> {
         use tui::text::{Span, Spans};
 
         let MenuOption {
@@ -81,9 +69,7 @@ impl<'l> OptionsList<'l> {
             display,
         } = option;
 
-        let display_style = Style::default()
-            .fg(display_color.foreground)
-            .bg(display_color.background);
+        let display_style = Style::default();
         let key_style = Style::default()
             .fg(key_color.foreground)
             .bg(key_color.background);
