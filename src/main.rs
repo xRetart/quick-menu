@@ -1,5 +1,10 @@
 #![feature(unix_sigpipe)]
 #![feature(map_try_insert)]
+#![warn(
+     clippy::pedantic,
+     clippy::all,
+     clippy::cargo,
+ )]
 
 mod args;
 mod events;
@@ -8,9 +13,9 @@ mod parse;
 
 use {
     anyhow::Result,
-    events::Choice,
     interface::{ui::Colorscheme, Ui},
     parse::MenuOption,
+    events::Choice,
 };
 
 #[unix_sigpipe = "inherit"]

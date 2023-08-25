@@ -1,7 +1,12 @@
 [package]
 name = "quick-menu"
+description = "A terminal based menu app with hotkeys to select an option."
 version = "0.1.0"
 edition = "2021"
+license-file = "LICENSE"
+repository = "https://github.com/xRetart/quick-menu"
+keywords = ["menu", "tui", "hotkeys"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.72"
