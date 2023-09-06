@@ -66,5 +66,10 @@ pub fn from_stdin() -> Result<Vec<MenuOption>> {
             .and_then(parse)
     };
 
-    stdin().lock().lines().map(parse_line).collect()
+    let options = stdin().lock().lines().map(parse_line).collect::<Result<Vec<_>>>()?;
+    if options.is_empty() {
+        Err(anyhow!("No options where given."))
+    }else {
+        Ok(options)
+    }
 }
