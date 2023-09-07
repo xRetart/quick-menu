@@ -43,15 +43,15 @@ impl FromStr for MenuOption {
 impl Display for MenuOption {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let Self {
-            key,
-            output,
-            display: _,
+            key: _,
+            output: _,
+            display,
         } = self;
-        write!(f, "{key} : {output}")
+        write!(f, "{display}")
     }
 }
 
-pub fn from_stdin() -> Result<Vec<MenuOption>> {
+pub fn from_stdin() -> Result<Box<[MenuOption]>> {
     use {
         anyhow::Context,
         std::io::{self, stdin, BufRead},
@@ -70,7 +70,7 @@ pub fn from_stdin() -> Result<Vec<MenuOption>> {
         .lock()
         .lines()
         .map(parse_line)
-        .collect::<Result<Vec<_>>>()?;
+        .collect::<Result<Box<_>>>()?;
     if options.is_empty() {
         Err(anyhow!("No options where given."))
     } else {

@@ -1,31 +1,37 @@
 pub mod colorscheme;
-pub mod options_list;
+pub mod list;
 
 use {
     crate::parse::MenuOption,
     tui::{backend::Backend, layout::Rect, Frame},
 };
-pub use {colorscheme::Colorscheme, options_list::OptionsList};
+pub use {colorscheme::Colorscheme, list::List};
 
 pub struct Ui<'o> {
-    pub options: OptionsList<'o>,
-    last_area: Option<Rect>,
+    pub options: List<'o>,
+    area: Option<Rect>,
+}
+pub struct Customizations {
+    pub colorscheme: Colorscheme,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Coordinate {
+    pub x: u16,
+    pub y: u16,
 }
 impl<'o> Ui<'o> {
-    pub fn new(options: Vec<MenuOption>, colorscheme: &Colorscheme) -> Self {
-        let options = OptionsList::new(options, colorscheme);
-        let last_area = None;
-        Self { options, last_area }
+    pub fn new(options: &'o [MenuOption], customizations: Customizations) -> Self {
+        let Customizations { colorscheme } = customizations;
+        let options_customizations = list::Customizations { colorscheme };
+        let options = List::new(options, &options_customizations);
+
+        let area = None;
+
+        Self { options, area }
     }
-    fn option_at(&self, row: u16, column: u16) -> Option<usize> {
-        let in_range = |x, (min, offset)| (min..=min + offset).contains(&x);
-        self.last_area.and_then(|area| {
-            (in_range(column, (area.x, area.width)) && in_range(column, (area.x, area.width)))
-                .then_some((row - area.y - 1) as usize)
-        })
-    }
-    pub fn select(&mut self, row: u16, column: u16) -> Option<usize> {
-        let position = self.option_at(row, column);
+    pub fn select(&mut self, coordinate: Coordinate) -> Option<usize> {
+        let position = self.area.and_then(|area| row_in_area(area, coordinate));
         if position == self.options.state.selected() {
             position
         } else {
@@ -39,12 +45,12 @@ impl<'o> Ui<'o> {
         let options = self.options.list.clone();
         let state = &mut self.options.state.state;
 
-        self.last_area = Some(centered);
+        self.area = Some(centered);
         frame.render_stateful_widget(options, centered, state);
     }
     const fn center_options(&self, outer: Rect) -> Rect {
-        let width = self.options.width + 2;
-        let height = self.options.height + 2;
+        let width = self.options.dimensions.x + 2;
+        let height = self.options.dimensions.y + 2;
 
         let x = (outer.width - width) / 2;
         let y = (outer.height - height) / 2;
@@ -56,4 +62,11 @@ impl<'o> Ui<'o> {
             height,
         }
     }
+}
+fn row_in_area(area: Rect, coordinate: Coordinate) -> Option<usize> {
+    let Coordinate { x, y } = coordinate;
+
+    (area.x..=area.x + area.width)
+        .contains(&x)
+        .then_some((y - area.y - 1) as usize)
 }

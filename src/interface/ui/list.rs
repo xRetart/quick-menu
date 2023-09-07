@@ -1,23 +1,47 @@
 use {
     super::{colorscheme::TextColor, Colorscheme},
-    crate::parse::MenuOption,
+    crate::{interface::ui::Coordinate, parse::MenuOption},
     tui::{
         style::Style,
-        widgets::{List, ListItem, ListState},
+        widgets::{ListItem, ListState},
     },
 };
 
-pub struct OptionsList<'l> {
-    pub state: OptionsState,
-    pub list: List<'l>,
-    pub width: u16,
-    pub height: u16,
+type TuiList<'l> = tui::widgets::List<'l>;
+pub struct Customizations {
+    pub colorscheme: Colorscheme,
 }
-impl<'l> OptionsList<'l> {
-    pub fn new(options: Vec<MenuOption>, colorscheme: &Colorscheme) -> Self {
-        use tui::{
-            style::Modifier,
-            widgets::{Block, BorderType, Borders},
+pub struct List<'l> {
+    pub state: State,
+    pub list: TuiList<'l>,
+    pub dimensions: Coordinate,
+}
+impl<'l> List<'l> {
+    pub fn new(options: &'l [MenuOption], customizations: &Customizations) -> Self {
+        let Customizations { colorscheme } = customizations;
+
+        let length = options.len();
+        let state = State::with_length(length);
+
+        let width = options_width(options);
+        let height = options.len().try_into().unwrap();
+        let dimensions = Coordinate {
+            x: width,
+            y: height,
+        };
+
+        let list = Self::create_list(options, width, colorscheme);
+
+        Self {
+            state,
+            list,
+            dimensions,
+        }
+    }
+    fn create_list(options: &[MenuOption], width: u16, colorscheme: &Colorscheme) -> TuiList<'l> {
+        use {
+            tui::style::Modifier,
+            tui::widgets::{Block, BorderType, Borders},
         };
 
         let style = Style::default();
@@ -27,21 +51,9 @@ impl<'l> OptionsList<'l> {
             .bg(colorscheme.selected.background)
             .fg(colorscheme.selected.foreground);
 
-        let length = options.len();
-
-        let state = OptionsState::with_length(length);
-        let width = options
-            .iter()
-            .map(|option| option.to_string().len())
-            .max()
-            .unwrap_or(0)
-            .try_into()
-            .unwrap();
-        let height = options.len().try_into().unwrap();
-
         let items = options
-            .into_iter()
-            .map(|text| Self::make_item(text, width, &colorscheme.key))
+            .iter()
+            .map(|text| Self::create_item(text, width, &colorscheme.key))
             .collect::<Vec<_>>();
         let block = Block::default()
             .style(style)
@@ -49,18 +61,11 @@ impl<'l> OptionsList<'l> {
             .borders(Borders::ALL)
             .border_style(border_style)
             .style(style);
-        let list = List::new(items)
+        TuiList::new(items)
             .highlight_style(highlight_style)
-            .block(block);
-
-        Self {
-            state,
-            list,
-            width,
-            height,
-        }
+            .block(block)
     }
-    fn make_item(option: MenuOption, width: u16, key_color: &TextColor) -> ListItem<'l> {
+    fn create_item(option: &MenuOption, width: u16, key_color: &TextColor) -> ListItem<'l> {
         use tui::text::{Span, Spans};
 
         let MenuOption {
@@ -83,12 +88,20 @@ impl<'l> OptionsList<'l> {
         ListItem::new(Spans::from(vec![key_span, display_span]))
     }
 }
+fn options_width(options: &[MenuOption]) -> u16 {
+    let to_lengths = |option: &MenuOption| option.to_string().chars().count();
 
-pub struct OptionsState {
+    let key_chars = 3;
+    let display_chars = options.iter().map(to_lengths).max().unwrap() + 1;
+
+    (display_chars + key_chars).try_into().unwrap()
+}
+
+pub struct State {
     pub length: usize,
     pub state: ListState,
 }
-impl OptionsState {
+impl State {
     pub fn with_length(length: usize) -> Self {
         Self {
             length,

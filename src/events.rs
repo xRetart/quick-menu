@@ -32,12 +32,20 @@ fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Choice>> {
     }
 }
 fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
-    use crossterm::event::{MouseButton, MouseEventKind};
+    use {
+        crate::interface::ui::Coordinate,
+        crossterm::event::{MouseButton, MouseEventKind},
+    };
+
+    let x = mouse.column;
+    let y = mouse.row;
+    let coordinate = Coordinate { x, y };
+
     match mouse.kind {
         MouseEventKind::ScrollUp => ui.options.state.previous(),
         MouseEventKind::ScrollDown => ui.options.state.next(),
         MouseEventKind::Down(MouseButton::Middle) => return ui.options.state.selected(),
-        MouseEventKind::Down(MouseButton::Left) => return ui.select(mouse.row, mouse.column),
+        MouseEventKind::Down(MouseButton::Left) => return ui.select(coordinate),
         _ => {}
     }
     None
