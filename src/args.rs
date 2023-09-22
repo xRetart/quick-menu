@@ -18,7 +18,7 @@ pub struct Cli {
     #[arg(long, default_value_t = Color(tui::style::Color::White))]
     pub color_border: Color,
 
-    #[arg(long, short, default_value_t = true)]
+    #[arg(long, short, default_value_t = false)]
     pub noborders: bool,
 }
 
