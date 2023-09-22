@@ -19,7 +19,7 @@ pub struct Cli {
     pub color_border: Color,
 
     #[arg(long, short, default_value_t = true)]
-    pub borders: bool,
+    pub noborders: bool,
 }
 
 #[derive(Clone)]

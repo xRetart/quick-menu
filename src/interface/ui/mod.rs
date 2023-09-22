@@ -13,7 +13,7 @@ pub struct Ui<'o> {
 }
 pub struct Customizations {
     pub colorscheme: Colorscheme,
-    pub borders: bool,
+    pub noborders: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -25,11 +25,11 @@ impl<'o> Ui<'o> {
     pub fn new(options: &'o [MenuOption], customizations: Customizations) -> Self {
         let Customizations {
             colorscheme,
-            borders,
+            noborders,
         } = customizations;
         let options_customizations = list::Customizations {
             colorscheme,
-            borders,
+            noborders,
         };
         let options = List::new(options, &options_customizations);
 

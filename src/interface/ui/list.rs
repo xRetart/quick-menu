@@ -10,7 +10,7 @@ use {
 type TuiList<'l> = tui::widgets::List<'l>;
 pub struct Customizations {
     pub colorscheme: Colorscheme,
-    pub borders: bool,
+    pub noborders: bool,
 }
 pub struct List<'l> {
     pub state: State,
@@ -21,7 +21,7 @@ impl<'l> List<'l> {
     pub fn new(options: &'l [MenuOption], customizations: &Customizations) -> Self {
         let Customizations {
             colorscheme,
-            borders,
+            noborders,
         } = customizations;
 
         let length = options.len();
@@ -34,7 +34,7 @@ impl<'l> List<'l> {
             y: height,
         };
 
-        let list = Self::create_list(options, width, colorscheme, *borders);
+        let list = Self::create_list(options, width, colorscheme, *noborders);
 
         Self {
             state,
@@ -46,14 +46,18 @@ impl<'l> List<'l> {
         options: &[MenuOption],
         width: u16,
         colorscheme: &Colorscheme,
-        borders: bool,
+        noborders: bool,
     ) -> TuiList<'l> {
         use {
             tui::style::Modifier,
             tui::widgets::{Block, BorderType, Borders},
         };
 
-        let borders = if borders { Borders::ALL } else { Borders::NONE };
+        let noborders = if noborders {
+            Borders::NONE
+        } else {
+            Borders::ALL
+        };
 
         let style = Style::default();
         let border_style = style.fg(colorscheme.border);
@@ -69,7 +73,7 @@ impl<'l> List<'l> {
         let block = Block::default()
             .style(style)
             .border_type(BorderType::Thick)
-            .borders(borders)
+            .borders(noborders)
             .border_style(border_style)
             .style(style);
         TuiList::new(items)
