@@ -10,6 +10,7 @@ use {
 type TuiList<'l> = tui::widgets::List<'l>;
 pub struct Customizations {
     pub colorscheme: Colorscheme,
+    pub borders: bool,
 }
 pub struct List<'l> {
     pub state: State,
@@ -18,7 +19,10 @@ pub struct List<'l> {
 }
 impl<'l> List<'l> {
     pub fn new(options: &'l [MenuOption], customizations: &Customizations) -> Self {
-        let Customizations { colorscheme } = customizations;
+        let Customizations {
+            colorscheme,
+            borders,
+        } = customizations;
 
         let length = options.len();
         let state = State::with_length(length);
@@ -30,7 +34,7 @@ impl<'l> List<'l> {
             y: height,
         };
 
-        let list = Self::create_list(options, width, colorscheme);
+        let list = Self::create_list(options, width, colorscheme, *borders);
 
         Self {
             state,
@@ -38,11 +42,18 @@ impl<'l> List<'l> {
             dimensions,
         }
     }
-    fn create_list(options: &[MenuOption], width: u16, colorscheme: &Colorscheme) -> TuiList<'l> {
+    fn create_list(
+        options: &[MenuOption],
+        width: u16,
+        colorscheme: &Colorscheme,
+        borders: bool,
+    ) -> TuiList<'l> {
         use {
             tui::style::Modifier,
             tui::widgets::{Block, BorderType, Borders},
         };
+
+        let borders = if borders { Borders::ALL } else { Borders::NONE };
 
         let style = Style::default();
         let border_style = style.fg(colorscheme.border);
@@ -53,19 +64,19 @@ impl<'l> List<'l> {
 
         let items = options
             .iter()
-            .map(|text| Self::create_item(text, width, &colorscheme.key))
+            .map(|text| Self::create_item(text, width, colorscheme.key))
             .collect::<Vec<_>>();
         let block = Block::default()
             .style(style)
             .border_type(BorderType::Thick)
-            .borders(Borders::ALL)
+            .borders(borders)
             .border_style(border_style)
             .style(style);
         TuiList::new(items)
             .highlight_style(highlight_style)
             .block(block)
     }
-    fn create_item(option: &MenuOption, width: u16, key_color: &TextColor) -> ListItem<'l> {
+    fn create_item(option: &MenuOption, width: u16, key_color: TextColor) -> ListItem<'l> {
         use tui::text::{Span, Spans};
 
         let MenuOption {

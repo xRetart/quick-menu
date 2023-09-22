@@ -2,11 +2,13 @@ use crate::args::Cli;
 
 pub type Color = tui::style::Color;
 
+#[derive(Clone, Copy)]
 pub struct TextColor {
     pub foreground: Color,
     pub background: Color,
 }
 
+#[derive(Clone, Copy)]
 pub struct Colorscheme {
     pub selected: TextColor,
     pub key: TextColor,
