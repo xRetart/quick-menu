@@ -27,11 +27,12 @@ impl<'l> List<'l> {
         let length = options.len();
         let state = State::with_length(length);
 
+        let border_size = if customizations.noborders { 0 } else { 2 };
         let width = options_width(options);
-        let height = options.len().try_into().unwrap();
+        let height = u16::try_from(options.len()).unwrap();
         let dimensions = Coordinate {
-            x: width,
-            y: height,
+            x: width + border_size,
+            y: height + border_size,
         };
 
         let list = Self::create_list(options, width, colorscheme, *noborders);

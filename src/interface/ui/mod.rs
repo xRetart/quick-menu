@@ -7,10 +7,6 @@ use {
 };
 pub use {colorscheme::Colorscheme, list::List};
 
-pub struct Ui<'o> {
-    pub options: List<'o>,
-    area: Option<Rect>,
-}
 pub struct Customizations {
     pub colorscheme: Colorscheme,
     pub noborders: bool,
@@ -20,6 +16,10 @@ pub struct Customizations {
 pub struct Coordinate {
     pub x: u16,
     pub y: u16,
+}
+pub struct Ui<'o> {
+    pub options: List<'o>,
+    area: Option<Rect>,
 }
 impl<'o> Ui<'o> {
     pub fn new(options: &'o [MenuOption], customizations: Customizations) -> Self {
@@ -56,8 +56,8 @@ impl<'o> Ui<'o> {
         frame.render_stateful_widget(options, centered, state);
     }
     const fn center_options(&self, outer: Rect) -> Rect {
-        let width = self.options.dimensions.x + 2;
-        let height = self.options.dimensions.y + 2;
+        let width = self.options.dimensions.x;
+        let height = self.options.dimensions.y;
 
         let x = (outer.width - width) / 2;
         let y = (outer.height - height) / 2;
