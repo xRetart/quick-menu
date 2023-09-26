@@ -82,7 +82,10 @@ impl<'l> List<'l> {
             .block(block)
     }
     fn create_item(option: &MenuOption, width: u16, key_color: TextColor) -> ListItem<'l> {
-        use tui::text::{Span, Spans};
+        use tui::{
+            style::Modifier,
+            text::{Span, Spans},
+        };
 
         let MenuOption {
             key,
@@ -90,8 +93,10 @@ impl<'l> List<'l> {
             display,
         } = option;
 
-        let display_style = Style::default();
-        let key_style = Style::default()
+        let default_style = Style::default();
+        let display_style = default_style;
+        let key_style = default_style
+            .add_modifier(Modifier::BOLD)
             .fg(key_color.foreground)
             .bg(key_color.background);
 

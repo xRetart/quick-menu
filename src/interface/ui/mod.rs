@@ -7,12 +7,13 @@ use {
 };
 pub use {colorscheme::Colorscheme, list::List};
 
+#[derive(Clone, Copy)]
 pub struct Customizations {
     pub colorscheme: Colorscheme,
     pub noborders: bool,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Coordinate {
     pub x: u16,
     pub y: u16,
