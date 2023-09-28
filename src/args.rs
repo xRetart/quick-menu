@@ -1,4 +1,7 @@
-use {anyhow::Result, clap::Parser, std::fmt::Display, std::str::FromStr};
+use {
+    crate::interface::ui::list::BorderStyle, anyhow::Result, clap::Parser, std::fmt::Display,
+    std::str::FromStr,
+};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -18,8 +21,8 @@ pub struct Cli {
     #[arg(long, default_value_t = Color(tui::style::Color::White))]
     pub color_border: Color,
 
-    #[arg(long, short, default_value_t = false)]
-    pub noborders: bool,
+    #[arg(long, short, value_enum, default_value_t = BorderStyle::Thick)]
+    pub border_style: BorderStyle,
 }
 
 #[derive(Clone)]

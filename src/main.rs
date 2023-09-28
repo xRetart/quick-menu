@@ -30,11 +30,11 @@ fn run_ui(ui: Ui, options: &[MenuOption]) -> Result<Choice> {
 fn create_ui(arguments: Cli, options: &[MenuOption]) -> Ui {
     use interface::ui::{Colorscheme, Customizations};
 
-    let noborders = arguments.noborders;
+    let border_style = arguments.border_style;
     let colorscheme = Colorscheme::from_args(arguments);
     let customizations = Customizations {
         colorscheme,
-        noborders,
+        border_style,
     };
 
     Ui::new(options, customizations)

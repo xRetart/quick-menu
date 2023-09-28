@@ -1,33 +1,36 @@
+use clap::ValueEnum;
+
 use {
     super::{colorscheme::TextColor, Colorscheme},
     crate::{interface::ui::Coordinate, parse::MenuOption},
     tui::{
         style::Style,
-        widgets::{ListItem, ListState},
+        widgets::{Block, ListItem, ListState},
     },
 };
 
 type TuiList<'l> = tui::widgets::List<'l>;
-pub struct Customizations {
-    pub colorscheme: Colorscheme,
-    pub noborders: bool,
-}
 pub struct List<'l> {
     pub state: State,
     pub list: TuiList<'l>,
     pub dimensions: Coordinate,
 }
+
 impl<'l> List<'l> {
     pub fn new(options: &'l [MenuOption], customizations: &Customizations) -> Self {
         let Customizations {
-            colorscheme,
-            noborders,
+            colorscheme: _,
+            border_style,
         } = customizations;
 
         let length = options.len();
         let state = State::with_length(length);
 
-        let border_size = if customizations.noborders { 0 } else { 2 };
+        let border_size = if matches!(border_style, BorderStyle::None) {
+            0
+        } else {
+            2
+        };
         let width = options_width(options);
         let height = u16::try_from(options.len()).unwrap();
         let dimensions = Coordinate {
@@ -35,7 +38,7 @@ impl<'l> List<'l> {
             y: height + border_size,
         };
 
-        let list = Self::create_list(options, width, colorscheme, *noborders);
+        let list = Self::create_list(options, width, customizations);
 
         Self {
             state,
@@ -46,22 +49,15 @@ impl<'l> List<'l> {
     fn create_list(
         options: &[MenuOption],
         width: u16,
-        colorscheme: &Colorscheme,
-        noborders: bool,
+        Customizations {
+            colorscheme,
+            border_style,
+        }: &Customizations,
     ) -> TuiList<'l> {
-        use {
-            tui::style::Modifier,
-            tui::widgets::{Block, BorderType, Borders},
-        };
-
-        let noborders = if noborders {
-            Borders::NONE
-        } else {
-            Borders::ALL
-        };
+        use tui::style::Modifier;
 
         let style = Style::default();
-        let border_style = style.fg(colorscheme.border);
+        let border_color = style.fg(colorscheme.border);
         let highlight_style = style
             .add_modifier(Modifier::BOLD)
             .bg(colorscheme.selected.background)
@@ -71,12 +67,7 @@ impl<'l> List<'l> {
             .iter()
             .map(|text| Self::create_item(text, width, colorscheme.key))
             .collect::<Vec<_>>();
-        let block = Block::default()
-            .style(style)
-            .border_type(BorderType::Thick)
-            .borders(noborders)
-            .border_style(border_style)
-            .style(style);
+        let block = border_style.apply(Block::default().style(style).border_style(border_color));
         TuiList::new(items)
             .highlight_style(highlight_style)
             .block(block)
@@ -109,6 +100,7 @@ impl<'l> List<'l> {
         ListItem::new(Spans::from(vec![key_span, display_span]))
     }
 }
+
 fn options_width(options: &[MenuOption]) -> u16 {
     let to_lengths = |option: &MenuOption| option.to_string().chars().count();
 
@@ -118,10 +110,39 @@ fn options_width(options: &[MenuOption]) -> u16 {
     (display_chars + key_chars).try_into().unwrap()
 }
 
+pub struct Customizations {
+    pub colorscheme: Colorscheme,
+    pub border_style: BorderStyle,
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+pub enum BorderStyle {
+    None,
+    Plain,
+    Thick,
+    Rounded,
+    Double,
+}
+
+impl BorderStyle {
+    pub fn apply(self, block: Block<'_>) -> Block<'_> {
+        use tui::widgets::{BorderType, Borders};
+
+        match self {
+            Self::None => block.borders(Borders::NONE),
+            Self::Plain => block.borders(Borders::ALL).border_type(BorderType::Plain),
+            Self::Thick => block.borders(Borders::ALL).border_type(BorderType::Thick),
+            Self::Rounded => block.borders(Borders::ALL).border_type(BorderType::Rounded),
+            Self::Double => block.borders(Borders::ALL).border_type(BorderType::Double),
+        }
+    }
+}
+
 pub struct State {
     pub length: usize,
     pub state: ListState,
 }
+
 impl State {
     pub fn with_length(length: usize) -> Self {
         Self {

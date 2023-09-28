@@ -3,14 +3,16 @@ pub mod list;
 
 use {
     crate::parse::MenuOption,
+    list::BorderStyle,
     tui::{backend::Backend, layout::Rect, Frame},
 };
+
 pub use {colorscheme::Colorscheme, list::List};
 
 #[derive(Clone, Copy)]
 pub struct Customizations {
     pub colorscheme: Colorscheme,
-    pub noborders: bool,
+    pub border_style: BorderStyle,
 }
 
 #[derive(Clone, Copy)]
@@ -26,11 +28,11 @@ impl<'o> Ui<'o> {
     pub fn new(options: &'o [MenuOption], customizations: Customizations) -> Self {
         let Customizations {
             colorscheme,
-            noborders,
+            border_style,
         } = customizations;
         let options_customizations = list::Customizations {
             colorscheme,
-            noborders,
+            border_style,
         };
         let options = List::new(options, &options_customizations);
 
