@@ -1,4 +1,40 @@
-a : option for a|Option A
-b : option for b|Option B
-x : special option for x|Special Option X
-$ : special option for $|Special Option '$'
+a : option a|Letter Option A
+b : option b|Letter Option B
+c : option c|Letter Option C
+d : option d|Letter Option D
+e : option e|Letter Option E
+f : option f|Letter Option F
+g : option g|Letter Option G
+h : option h|Letter Option H
+i : option i|Letter Option I
+j : option j|Letter Option J
+h : option h|Letter Option H
+k : option k|Letter Option K
+l : option l|Letter Option L
+m : option m|Letter Option M
+n : option n|Letter Option N
+o : option o|Letter Option O
+p : option p|Letter Option P
+q : option q|Letter Option Q
+r : option r|Letter Option R
+s : option s|Letter Option S
+t : option t|Letter Option T
+u : option u|Letter Option U
+v : option v|Letter Option V
+w : option w|Letter Option W
+x : option x|Letter Option X
+y : option y|Letter Option Y
+z : option z|Letter Option Z
+1 : option 1|Number Option 1
+2 : option 2|Number Option 2
+3 : option 3|Number Option 3
+4 : option 4|Number Option 4
+5 : option 5|Number Option 5
+6 : option 6|Number Option 6
+7 : option 7|Number Option 7
+8 : option 8|Number Option 8
+9 : option 9|Number Option 9
+0 : option 0|Number Option 0
+, : paragraph option|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+* : special option *|Special Option '*'
+$ : special option $|Special Option '$'

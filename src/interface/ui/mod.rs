@@ -34,7 +34,7 @@ impl<'o> Ui<'o> {
             colorscheme,
             border_style,
         };
-        let options = List::new(options, &options_customizations);
+        let options = List::new(options, options_customizations);
 
         let area = None;
 
@@ -51,6 +51,7 @@ impl<'o> Ui<'o> {
     }
     pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>) {
         let size = frame.size();
+        self.options.fit(size.width);
         let centered = self.center_options(size);
         let options = self.options.list.clone();
         let state = &mut self.options.state.state;
@@ -58,9 +59,9 @@ impl<'o> Ui<'o> {
         self.area = Some(centered);
         frame.render_stateful_widget(options, centered, state);
     }
-    const fn center_options(&self, outer: Rect) -> Rect {
-        let width = self.options.dimensions.x;
-        let height = self.options.dimensions.y;
+    fn center_options(&self, outer: Rect) -> Rect {
+        let width = self.options.dimensions.x.min(outer.width);
+        let height = self.options.dimensions.y.min(outer.height);
 
         let x = (outer.width - width) / 2;
         let y = (outer.height - height) / 2;

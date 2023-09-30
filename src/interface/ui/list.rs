@@ -1,8 +1,7 @@
-use clap::ValueEnum;
-
 use {
     super::{colorscheme::TextColor, Colorscheme},
     crate::{interface::ui::Coordinate, parse::MenuOption},
+    clap::ValueEnum,
     tui::{
         style::Style,
         widgets::{Block, ListItem, ListState},
@@ -14,10 +13,12 @@ pub struct List<'l> {
     pub state: State,
     pub list: TuiList<'l>,
     pub dimensions: Coordinate,
+    pub options: &'l [MenuOption],
+    pub customizations: Customizations,
 }
 
 impl<'l> List<'l> {
-    pub fn new(options: &'l [MenuOption], customizations: &Customizations) -> Self {
+    pub fn new(options: &'l [MenuOption], customizations: Customizations) -> Self {
         let Customizations {
             colorscheme: _,
             border_style,
@@ -38,16 +39,18 @@ impl<'l> List<'l> {
             y: height + border_size,
         };
 
-        let list = Self::create_list(options, width, customizations);
+        let list = Self::create_list(options, width, &customizations);
 
         Self {
             state,
             list,
             dimensions,
+            options,
+            customizations,
         }
     }
     fn create_list(
-        options: &[MenuOption],
+        options: &'l [MenuOption],
         width: u16,
         Customizations {
             colorscheme,
@@ -56,6 +59,11 @@ impl<'l> List<'l> {
     ) -> TuiList<'l> {
         use tui::style::Modifier;
 
+        let border_size = if matches!(border_style, BorderStyle::None) {
+            0
+        } else {
+            2
+        };
         let style = Style::default();
         let border_color = style.fg(colorscheme.border);
         let highlight_style = style
@@ -65,17 +73,20 @@ impl<'l> List<'l> {
 
         let items = options
             .iter()
-            .map(|text| Self::create_item(text, width, colorscheme.key))
+            .map(|text| Self::create_item(text, width - border_size, colorscheme.key))
             .collect::<Vec<_>>();
         let block = border_style.apply(Block::default().style(style).border_style(border_color));
         TuiList::new(items)
             .highlight_style(highlight_style)
             .block(block)
     }
-    fn create_item(option: &MenuOption, width: u16, key_color: TextColor) -> ListItem<'l> {
-        use tui::{
-            style::Modifier,
-            text::{Span, Spans},
+    fn create_item(option: &'l MenuOption, width: u16, key_color: TextColor) -> ListItem<'l> {
+        use {
+            textwrap::{wrap, Options},
+            tui::{
+                style::Modifier,
+                text::{Span, Spans},
+            },
         };
 
         let MenuOption {
@@ -91,13 +102,25 @@ impl<'l> List<'l> {
             .fg(key_color.foreground)
             .bg(key_color.background);
 
-        let display_span = Span::styled(
-            format!(" {display:0$}", (width - 1) as usize),
-            display_style,
+        let wrap = wrap(
+            display,
+            Options::new(usize::try_from(width - 4).unwrap()).subsequent_indent("    "),
         );
-        let key_span = Span::styled(format!(" {key} "), key_style);
+        let mut wrapped_display = wrap
+            .iter()
+            .map(|line| Span::styled(line.clone(), display_style));
+        let mut text = Vec::with_capacity(2);
+        text.push(Spans::from(vec![
+            Span::styled(format!(" {key} "), key_style),
+            Span::styled(" ", display_style),
+            wrapped_display.next().unwrap(),
+        ]));
+        text.extend(wrapped_display.map(|line| Spans::from(vec![line])));
 
-        ListItem::new(Spans::from(vec![key_span, display_span]))
+        ListItem::new(text)
+    }
+    pub fn fit(&mut self, width: u16) {
+        self.list = Self::create_list(self.options, width, &self.customizations);
     }
 }
 
