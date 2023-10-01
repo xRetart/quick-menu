@@ -7,11 +7,16 @@ mod events;
 mod interface;
 mod parse;
 
-use {anyhow::Result, args::Cli, events::Choice, interface::Ui, parse::MenuOption};
+use anyhow::Result;
+use args::Cli;
+use events::Choice;
+use interface::Ui;
+use parse::MenuOption;
 
 #[unix_sigpipe = "inherit"]
 fn main() -> Result<()> {
-    use {clap::Parser, parse::from_stdin};
+    use clap::Parser;
+    use parse::from_stdin;
 
     let arguments = Cli::parse();
     let options = from_stdin()?;
@@ -22,7 +27,8 @@ fn main() -> Result<()> {
     print_choice(&choice, &options)
 }
 fn run_ui(ui: Ui, options: &[MenuOption]) -> Result<Choice> {
-    use {events::event_loop, interface::Terminal};
+    use events::event_loop;
+    use interface::Terminal;
 
     let event_loop = |terminal: &mut _| event_loop(terminal, ui, options);
     Terminal::inside(event_loop)?
@@ -32,10 +38,7 @@ fn create_ui(arguments: Cli, options: &[MenuOption]) -> Ui {
 
     let border_style = arguments.border_style;
     let colorscheme = Colorscheme::from_args(arguments);
-    let customizations = Customizations {
-        colorscheme,
-        border_style,
-    };
+    let customizations = Customizations { colorscheme, border_style };
 
     Ui::new(options, customizations)
 }

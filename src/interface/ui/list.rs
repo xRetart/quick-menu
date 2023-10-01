@@ -1,12 +1,11 @@
-use {
-    super::{colorscheme::TextColor, Colorscheme},
-    crate::{interface::ui::Coordinate, parse::MenuOption},
-    clap::ValueEnum,
-    tui::{
-        style::Style,
-        widgets::{Block, ListItem, ListState},
-    },
+use clap::ValueEnum;
+use tui::{
+    style::Style,
+    widgets::{Block, ListItem, ListState},
 };
+
+use super::{colorscheme::TextColor, Colorscheme};
+use crate::{interface::ui::Coordinate, parse::MenuOption};
 
 type TuiList<'l> = tui::widgets::List<'l>;
 pub struct List<'l> {
@@ -19,51 +18,28 @@ pub struct List<'l> {
 
 impl<'l> List<'l> {
     pub fn new(options: &'l [MenuOption], customizations: Customizations) -> Self {
-        let Customizations {
-            colorscheme: _,
-            border_style,
-        } = customizations;
+        let Customizations { colorscheme: _, border_style } = customizations;
 
         let length = options.len();
         let state = State::with_length(length);
 
-        let border_size = if matches!(border_style, BorderStyle::None) {
-            0
-        } else {
-            2
-        };
+        let border_size = if matches!(border_style, BorderStyle::None) { 0 } else { 2 };
         let width = options_width(options);
         let height = u16::try_from(options.len()).unwrap();
-        let dimensions = Coordinate {
-            x: width + border_size,
-            y: height + border_size,
-        };
+        let dimensions = Coordinate { x: width + border_size, y: height + border_size };
 
         let list = Self::create_list(options, width, &customizations);
 
-        Self {
-            state,
-            list,
-            dimensions,
-            options,
-            customizations,
-        }
+        Self { state, list, dimensions, options, customizations }
     }
     fn create_list(
         options: &'l [MenuOption],
         width: u16,
-        Customizations {
-            colorscheme,
-            border_style,
-        }: &Customizations,
+        Customizations { colorscheme, border_style }: &Customizations,
     ) -> TuiList<'l> {
         use tui::style::Modifier;
 
-        let border_size = if matches!(border_style, BorderStyle::None) {
-            0
-        } else {
-            2
-        };
+        let border_size = if matches!(border_style, BorderStyle::None) { 0 } else { 2 };
         let style = Style::default();
         let border_color = style.fg(colorscheme.border);
         let highlight_style = style
@@ -76,24 +52,16 @@ impl<'l> List<'l> {
             .map(|text| Self::create_item(text, width - border_size, colorscheme.key))
             .collect::<Vec<_>>();
         let block = border_style.apply(Block::default().style(style).border_style(border_color));
-        TuiList::new(items)
-            .highlight_style(highlight_style)
-            .block(block)
+        TuiList::new(items).highlight_style(highlight_style).block(block)
     }
     fn create_item(option: &'l MenuOption, width: u16, key_color: TextColor) -> ListItem<'l> {
-        use {
-            textwrap::{wrap, Options},
-            tui::{
-                style::Modifier,
-                text::{Span, Spans},
-            },
+        use textwrap::{wrap, Options};
+        use tui::{
+            style::Modifier,
+            text::{Span, Spans},
         };
 
-        let MenuOption {
-            key,
-            output: _,
-            display,
-        } = option;
+        let MenuOption { key, output: _, display } = option;
 
         let default_style = Style::default();
         let display_style = default_style;
@@ -106,9 +74,7 @@ impl<'l> List<'l> {
             display,
             Options::new(usize::try_from(width - 4).unwrap()).subsequent_indent("    "),
         );
-        let mut wrapped_display = wrap
-            .iter()
-            .map(|line| Span::styled(line.clone(), display_style));
+        let mut wrapped_display = wrap.iter().map(|line| Span::styled(line.clone(), display_style));
         let mut text = Vec::with_capacity(2);
         text.push(Spans::from(vec![
             Span::styled(format!(" {key} "), key_style),
@@ -168,24 +134,15 @@ pub struct State {
 
 impl State {
     pub fn with_length(length: usize) -> Self {
-        Self {
-            length,
-            state: ListState::default(),
-        }
+        Self { length, state: ListState::default() }
     }
     pub fn next(&mut self) {
-        let new = self
-            .state
-            .selected()
-            .map_or(0, |index| (index + 1) % self.length);
+        let new = self.state.selected().map_or(0, |index| (index + 1) % self.length);
         self.state.select(Some(new));
     }
     pub fn previous(&mut self) {
         let last = self.length - 1;
-        let new = self
-            .state
-            .selected()
-            .map_or(last, |index| index.checked_sub(1).unwrap_or(last));
+        let new = self.state.selected().map_or(last, |index| index.checked_sub(1).unwrap_or(last));
         self.state.select(Some(new));
     }
     pub fn unselect(&mut self) {

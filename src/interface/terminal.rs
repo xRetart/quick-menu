@@ -1,16 +1,13 @@
-use {
-    anyhow::{Context, Result},
-    std::io::{self, Stderr},
-    tui::{backend::CrosstermBackend, Frame},
-};
+use std::io::{self, Stderr};
+
+use anyhow::{Context, Result};
+use tui::{backend::CrosstermBackend, Frame};
 pub type Backend = CrosstermBackend<Stderr>;
 pub struct Terminal(tui::Terminal<Backend>);
 
 impl Terminal {
     pub fn inside<R, F>(action: F) -> Result<R>
-    where
-        F: FnOnce(&mut Self) -> R,
-    {
+    where F: FnOnce(&mut Self) -> R {
         let mut terminal = Self::open().context("Opening terminal failed.")?;
         let result = action(&mut terminal);
         terminal.close().context("Closing terminal failed.")?;
@@ -48,12 +45,8 @@ impl Terminal {
 
         let Self(mut inner) = self;
         disable_raw_mode().context("Changing terminal mode from raw failed.")?;
-        execute!(
-            inner.backend_mut(),
-            LeaveAlternateScreen,
-            DisableMouseCapture,
-        )
-        .context("Leaving alternate screen failed.")?;
+        execute!(inner.backend_mut(), LeaveAlternateScreen, DisableMouseCapture,)
+            .context("Leaving alternate screen failed.")?;
         inner.show_cursor().context("Showing cursor failed.")?;
         Ok(())
     }

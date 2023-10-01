@@ -1,10 +1,9 @@
-use {
-    anyhow::{anyhow, Error, Result},
-    std::{
-        fmt::{self, Display, Formatter},
-        str::FromStr,
-    },
+use std::{
+    fmt::{self, Display, Formatter},
+    str::FromStr,
 };
+
+use anyhow::{anyhow, Error, Result};
 
 #[derive(Clone)]
 pub struct MenuOption {
@@ -24,56 +23,39 @@ impl FromStr for MenuOption {
         let key = chars.next().ok_or_else(|| anyhow!("Expected a key."))?;
 
         let mut chars = chars.skip_while(whitespace);
-        ensure!(
-            matches!(chars.next(), Some(':')),
-            anyhow!("Expected a separator")
-        );
+        ensure!(matches!(chars.next(), Some(':')), anyhow!("Expected a separator"));
         let mut chars = chars.skip_while(whitespace);
 
         let output = chars.by_ref().take_while(not_separator).collect::<String>();
         let display = chars.collect();
 
-        Ok(Self {
-            key,
-            output,
-            display,
-        })
+        Ok(Self { key, output, display })
     }
 }
 impl Display for MenuOption {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let Self {
-            key: _,
-            output: _,
-            display,
-        } = self;
+        let Self { key: _, output: _, display } = self;
         write!(f, "{display}")
     }
 }
 
 pub fn from_stdin() -> Result<Box<[MenuOption]>> {
-    use {
-        anyhow::Context,
-        std::io::{self, stdin, BufRead},
-    };
+    use std::io::{self, stdin, BufRead};
+
+    use anyhow::Context;
 
     let parse = |line: String| {
         line.parse::<MenuOption>()
             .with_context(|| format!("Failed to parse following line from stdin: \"{line}\""))
     };
-    let parse_line = |line: io::Result<_>| {
-        line.context("Reading line from stdin failed.")
-            .and_then(parse)
-    };
+    let parse_line =
+        |line: io::Result<_>| line.context("Reading line from stdin failed.").and_then(parse);
 
-    let options = stdin()
-        .lock()
-        .lines()
-        .map(parse_line)
-        .collect::<Result<Box<_>>>()?;
+    let options = stdin().lock().lines().map(parse_line).collect::<Result<Box<_>>>()?;
     if options.is_empty() {
         Err(anyhow!("No options where given."))
-    } else {
+    }
+    else {
         Ok(options)
     }
 }

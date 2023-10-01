@@ -1,10 +1,9 @@
-use {
-    crate::{
-        interface::{Terminal, Ui},
-        parse::MenuOption,
-    },
-    anyhow::{Context, Result},
-    crossterm::event::{self, KeyEvent, MouseEvent},
+use anyhow::{Context, Result};
+use crossterm::event::{self, KeyEvent, MouseEvent};
+
+use crate::{
+    interface::{Terminal, Ui},
+    parse::MenuOption,
 };
 
 pub enum Choice {
@@ -32,10 +31,9 @@ fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Choice>> {
     }
 }
 fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
-    use {
-        crate::interface::ui::Coordinate,
-        crossterm::event::{MouseButton, MouseEventKind},
-    };
+    use crossterm::event::{MouseButton, MouseEventKind};
+
+    use crate::interface::ui::Coordinate;
 
     let x = mouse.column;
     let y = mouse.row;
@@ -46,7 +44,7 @@ fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
         MouseEventKind::ScrollDown => ui.options.state.next(),
         MouseEventKind::Down(MouseButton::Middle) => return ui.options.state.selected(),
         MouseEventKind::Down(MouseButton::Left) => return ui.select(coordinate),
-        _ => {}
+        _ => {},
     }
     None
 }
@@ -59,20 +57,20 @@ fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choi
             KeyCode::Left => ui.options.state.unselect(),
             KeyCode::Char(' ') | KeyCode::Right => {
                 return ui.options.state.selected().map(Choice::Chosen)
-            }
+            },
             KeyCode::Char(key) => return map_key(key, options).map(Choice::Chosen),
             KeyCode::Enter => {
                 return Some(Choice::Chosen(ui.options.state.selected().unwrap_or(0)))
-            }
+            },
             KeyCode::Esc => return Some(Choice::None),
-            _ => {}
+            _ => {},
         },
         KeyModifiers::CONTROL => match key.code {
             KeyCode::Char('n') => ui.options.state.next(),
             KeyCode::Char('e') => ui.options.state.previous(),
             _ => (),
         },
-        _ => {}
+        _ => {},
     }
     None
 }

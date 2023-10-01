@@ -1,7 +1,9 @@
-use {
-    crate::interface::ui::list::BorderStyle, anyhow::Result, clap::Parser, std::fmt::Display,
-    std::str::FromStr,
-};
+use std::{fmt::Display, str::FromStr};
+
+use anyhow::Result;
+use clap::Parser;
+
+use crate::interface::ui::list::BorderStyle;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -32,10 +34,7 @@ impl Color {
         use anyhow::ensure;
 
         let mut hex = hex.chars();
-        ensure!(
-            hex.clone().count() == 7,
-            "six hex digits are necessary for a color"
-        );
+        ensure!(hex.clone().count() == 7, "six hex digits are necessary for a color");
 
         let hash = hex.next();
         debug_assert_eq!(hash, Some('#'));
@@ -80,10 +79,11 @@ impl FromStr for Color {
             other => {
                 if other.starts_with('#') {
                     Self::hex_to_rgb(other)?
-                } else {
+                }
+                else {
                     tui::style::Color::Indexed(other.parse()?)
                 }
-            }
+            },
         }))
     }
 }

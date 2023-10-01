@@ -1,13 +1,12 @@
 pub mod colorscheme;
 pub mod list;
 
-use {
-    crate::parse::MenuOption,
-    list::BorderStyle,
-    tui::{backend::Backend, layout::Rect, Frame},
-};
+pub use colorscheme::Colorscheme;
+use list::BorderStyle;
+pub use list::List;
+use tui::{backend::Backend, layout::Rect, Frame};
 
-pub use {colorscheme::Colorscheme, list::List};
+use crate::parse::MenuOption;
 
 #[derive(Clone, Copy)]
 pub struct Customizations {
@@ -26,14 +25,8 @@ pub struct Ui<'o> {
 }
 impl<'o> Ui<'o> {
     pub fn new(options: &'o [MenuOption], customizations: Customizations) -> Self {
-        let Customizations {
-            colorscheme,
-            border_style,
-        } = customizations;
-        let options_customizations = list::Customizations {
-            colorscheme,
-            border_style,
-        };
+        let Customizations { colorscheme, border_style } = customizations;
+        let options_customizations = list::Customizations { colorscheme, border_style };
         let options = List::new(options, options_customizations);
 
         let area = None;
@@ -44,7 +37,8 @@ impl<'o> Ui<'o> {
         let position = self.area.and_then(|area| row_in_area(area, coordinate));
         if position == self.options.state.selected() {
             position
-        } else {
+        }
+        else {
             self.options.state.state.select(position);
             None
         }
@@ -66,18 +60,11 @@ impl<'o> Ui<'o> {
         let x = (outer.width - width) / 2;
         let y = (outer.height - height) / 2;
 
-        Rect {
-            x,
-            y,
-            width,
-            height,
-        }
+        Rect { x, y, width, height }
     }
 }
 fn row_in_area(area: Rect, coordinate: Coordinate) -> Option<usize> {
     let Coordinate { x, y } = coordinate;
 
-    (area.x..=area.x + area.width)
-        .contains(&x)
-        .then_some((y - area.y - 1) as usize)
+    (area.x ..= area.x + area.width).contains(&x).then_some((y - area.y - 1) as usize)
 }
