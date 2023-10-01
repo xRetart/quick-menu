@@ -1,9 +1,10 @@
 use std::{
     fmt::{self, Display, Formatter},
+    io::{self, stdin, BufRead},
     str::FromStr,
 };
 
-use anyhow::{anyhow, Error, Result};
+use anyhow::{anyhow, ensure, Context, Error, Result};
 
 #[derive(Clone)]
 pub struct MenuOption {
@@ -14,8 +15,6 @@ pub struct MenuOption {
 impl FromStr for MenuOption {
     type Err = Error;
     fn from_str(line: &str) -> Result<Self, Self::Err> {
-        use anyhow::ensure;
-
         let whitespace = |c: &char| c.is_whitespace();
         let not_separator = |c: &char| c != &'|';
         let mut chars = line.chars();
@@ -40,10 +39,6 @@ impl Display for MenuOption {
 }
 
 pub fn from_stdin() -> Result<Box<[MenuOption]>> {
-    use std::io::{self, stdin, BufRead};
-
-    use anyhow::Context;
-
     let parse = |line: String| {
         line.parse::<MenuOption>()
             .with_context(|| format!("Failed to parse following line from stdin: \"{line}\""))

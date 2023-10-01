@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
-use crossterm::event::{self, KeyEvent, MouseEvent};
+use crossterm::event::{self, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
+use event::{read, Event, KeyCode, KeyModifiers};
 
 use crate::{
-    interface::{Terminal, Ui},
+    interface::{ui::Coordinate, Terminal, Ui},
     parse::MenuOption,
 };
 
@@ -22,8 +23,6 @@ pub fn event_loop(terminal: &mut Terminal, mut ui: Ui, options: &[MenuOption]) -
     Ok(choice.unwrap())
 }
 fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Choice>> {
-    use event::{read, Event};
-
     match read().context("Reading event from backend failed.")? {
         Event::Key(key) => Ok(handle_key(key, ui, options)),
         Event::Mouse(mouse) => Ok(handle_mouse(mouse, ui).map(Choice::Chosen)),
@@ -31,10 +30,6 @@ fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Choice>> {
     }
 }
 fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
-    use crossterm::event::{MouseButton, MouseEventKind};
-
-    use crate::interface::ui::Coordinate;
-
     let x = mouse.column;
     let y = mouse.row;
     let coordinate = Coordinate { x, y };
@@ -49,7 +44,6 @@ fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
     None
 }
 fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choice> {
-    use event::{KeyCode, KeyModifiers};
     match key.modifiers {
         KeyModifiers::NONE => match key.code {
             KeyCode::Down => ui.options.state.next(),

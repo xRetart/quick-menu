@@ -1,7 +1,9 @@
 use clap::ValueEnum;
+use textwrap::{wrap, Options};
 use tui::{
-    style::Style,
-    widgets::{Block, ListItem, ListState},
+    style::{Modifier, Style},
+    text::{Span, Spans},
+    widgets::{Block, BorderType, Borders, ListItem, ListState},
 };
 
 use super::{colorscheme::TextColor, Colorscheme};
@@ -37,8 +39,6 @@ impl<'l> List<'l> {
         width: u16,
         Customizations { colorscheme, border_style }: &Customizations,
     ) -> TuiList<'l> {
-        use tui::style::Modifier;
-
         let border_size = if matches!(border_style, BorderStyle::None) { 0 } else { 2 };
         let style = Style::default();
         let border_color = style.fg(colorscheme.border);
@@ -55,12 +55,6 @@ impl<'l> List<'l> {
         TuiList::new(items).highlight_style(highlight_style).block(block)
     }
     fn create_item(option: &'l MenuOption, width: u16, key_color: TextColor) -> ListItem<'l> {
-        use textwrap::{wrap, Options};
-        use tui::{
-            style::Modifier,
-            text::{Span, Spans},
-        };
-
         let MenuOption { key, output: _, display } = option;
 
         let default_style = Style::default();
@@ -115,8 +109,6 @@ pub enum BorderStyle {
 
 impl BorderStyle {
     pub fn apply(self, block: Block<'_>) -> Block<'_> {
-        use tui::widgets::{BorderType, Borders};
-
         match self {
             Self::None => block.borders(Borders::NONE),
             Self::Plain => block.borders(Borders::ALL).border_type(BorderType::Plain),
