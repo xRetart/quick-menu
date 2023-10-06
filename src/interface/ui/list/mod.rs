@@ -83,10 +83,10 @@ impl<'l> List<'l> {
 
         ListItem::new(text)
     }
-    pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>) {
-        let area = self.centered(frame.size());
+    pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>, chunk: Rect) {
+        let area = self.centered(chunk);
         let widget = Self::create_widget(self.data, area.width, &self.customizations);
-        let state = &mut self.state.state;
+        let state = &mut self.state.inner;
 
         frame.render_stateful_widget(widget, area, state);
         self.area = Some(area);
@@ -106,12 +106,18 @@ impl<'l> List<'l> {
             position
         }
         else {
-            self.state.state.select(position);
+            self.state.inner.select(position);
             None
         }
     }
     fn row_in_area(area: Rect, Coordinate { x, y }: Coordinate) -> Option<usize> {
         (area.x ..= area.x + area.width).contains(&x).then_some((y - area.y - 1) as usize)
+    }
+    pub fn query(&mut self, term: &str) {
+        let term = term.to_lowercase();
+        let matches = |subject: String| subject.to_lowercase().starts_with(&term);
+        let index = self.data.iter().position(|option| matches(option.to_string()));
+        self.state.inner.select(index);
     }
 }
 

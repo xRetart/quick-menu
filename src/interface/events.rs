@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use crossterm::event::{self, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use event::{read, Event, KeyCode, KeyModifiers};
 
+use super::ui::InputMode;
 use crate::{
     interface::{ui::Coordinate, Terminal, Ui},
     parse::MenuOption,
@@ -61,10 +62,15 @@ fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choi
             KeyCode::Down => ui.list.state.next(),
             KeyCode::Up => ui.list.state.previous(),
             KeyCode::Left => ui.list.state.unselect(),
-            KeyCode::Char(' ') | KeyCode::Right => {
-                return ui.list.state.selected().map(Choice::Chosen)
+            KeyCode::Char(character) => match ui.input_mode {
+                InputMode::Searching => ui.append_query(character),
+                InputMode::Selecting => return map_char(character, options).map(Choice::Chosen),
             },
-            KeyCode::Char(key) => return map_key(key, options).map(Choice::Chosen),
+            KeyCode::Backspace => {
+                if matches!(ui.input_mode, InputMode::Searching) {
+                    ui.query.string.pop();
+                }
+            },
             KeyCode::Enter => return Some(Choice::Chosen(ui.list.state.selected().unwrap_or(0))),
             KeyCode::Esc => return Some(Choice::None),
             _ => {},
@@ -72,12 +78,13 @@ fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choi
         KeyModifiers::CONTROL => match key.code {
             KeyCode::Char('n') => ui.list.state.next(),
             KeyCode::Char('e') => ui.list.state.previous(),
+            KeyCode::Char('s') => ui.input_mode.switch(),
             _ => (),
         },
         _ => {},
     }
     None
 }
-fn map_key(key: char, options: &[MenuOption]) -> Option<usize> {
+fn map_char(key: char, options: &[MenuOption]) -> Option<usize> {
     options.iter().position(|option| option.key == key)
 }
