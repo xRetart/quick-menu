@@ -6,8 +6,6 @@ mod args;
 mod interface;
 mod parse;
 
-use std::io::{stdout, Write};
-
 use anyhow::Result;
 use args::Cli;
 use clap::Parser;
@@ -27,7 +25,7 @@ fn main() -> Result<()> {
     let ui = create_ui(arguments, &options);
     let choice = run_ui(ui, &options)?;
 
-    print_choice(&choice, &options)
+    choice.print(&options)
 }
 fn run_ui(ui: Ui, options: &[MenuOption]) -> Result<Choice> {
     let event_loop = |terminal: &mut _| event_loop(terminal, ui, options);
@@ -39,12 +37,4 @@ fn create_ui(arguments: Cli, options: &[MenuOption]) -> Ui {
     let customizations = Customizations { colorscheme, border_style };
 
     Ui::new(options, customizations)
-}
-fn print_choice(choice: &Choice, options: &[MenuOption]) -> Result<()> {
-    if let Choice::Chosen(index) = choice {
-        let mut stdout = stdout().lock();
-        let chosen = options[*index].output.as_str();
-        writeln!(stdout, "{chosen}")?;
-    }
-    Ok(())
 }

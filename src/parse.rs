@@ -46,7 +46,8 @@ pub fn from_stdin() -> Result<Box<[MenuOption]>> {
     let parse_line =
         |line: io::Result<_>| line.context("Reading line from stdin failed.").and_then(parse);
 
-    let options = stdin().lock().lines().map(parse_line).collect::<Result<Box<_>>>()?;
+    let stdin = stdin().lock();
+    let options = stdin.lines().map(parse_line).collect::<Result<Box<_>>>()?;
     if options.is_empty() {
         Err(anyhow!("No options where given."))
     }

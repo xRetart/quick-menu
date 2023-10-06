@@ -1,3 +1,5 @@
+use std::io::{stdout, Write};
+
 use anyhow::{Context, Result};
 use crossterm::event::{self, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use event::{read, Event, KeyCode, KeyModifiers};
@@ -12,6 +14,16 @@ pub enum Choice {
     None,
 }
 
+impl Choice {
+    pub fn print(&self, options: &[MenuOption]) -> Result<()> {
+        if let Self::Chosen(index) = self {
+            let mut stdout = stdout().lock();
+            let chosen = options[*index].output.as_str();
+            writeln!(stdout, "{chosen}")?;
+        }
+        Ok(())
+    }
+}
 pub fn event_loop(terminal: &mut Terminal, mut ui: Ui, options: &[MenuOption]) -> Result<Choice> {
     let mut choice = None;
     while choice.is_none() {
