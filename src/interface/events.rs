@@ -47,10 +47,10 @@ fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
     let coordinate = Coordinate { x, y };
 
     match mouse.kind {
-        MouseEventKind::ScrollUp => ui.options.state.previous(),
-        MouseEventKind::ScrollDown => ui.options.state.next(),
-        MouseEventKind::Down(MouseButton::Middle) => return ui.options.state.selected(),
-        MouseEventKind::Down(MouseButton::Left) => return ui.select(coordinate),
+        MouseEventKind::ScrollUp => ui.list.state.previous(),
+        MouseEventKind::ScrollDown => ui.list.state.next(),
+        MouseEventKind::Down(MouseButton::Middle) => return ui.list.state.selected(),
+        MouseEventKind::Down(MouseButton::Left) => return ui.list.select(coordinate),
         _ => {},
     }
     None
@@ -58,22 +58,20 @@ fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
 fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choice> {
     match key.modifiers {
         KeyModifiers::NONE => match key.code {
-            KeyCode::Down => ui.options.state.next(),
-            KeyCode::Up => ui.options.state.previous(),
-            KeyCode::Left => ui.options.state.unselect(),
+            KeyCode::Down => ui.list.state.next(),
+            KeyCode::Up => ui.list.state.previous(),
+            KeyCode::Left => ui.list.state.unselect(),
             KeyCode::Char(' ') | KeyCode::Right => {
-                return ui.options.state.selected().map(Choice::Chosen)
+                return ui.list.state.selected().map(Choice::Chosen)
             },
             KeyCode::Char(key) => return map_key(key, options).map(Choice::Chosen),
-            KeyCode::Enter => {
-                return Some(Choice::Chosen(ui.options.state.selected().unwrap_or(0)))
-            },
+            KeyCode::Enter => return Some(Choice::Chosen(ui.list.state.selected().unwrap_or(0))),
             KeyCode::Esc => return Some(Choice::None),
             _ => {},
         },
         KeyModifiers::CONTROL => match key.code {
-            KeyCode::Char('n') => ui.options.state.next(),
-            KeyCode::Char('e') => ui.options.state.previous(),
+            KeyCode::Char('n') => ui.list.state.next(),
+            KeyCode::Char('e') => ui.list.state.previous(),
             _ => (),
         },
         _ => {},

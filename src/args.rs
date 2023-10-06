@@ -1,10 +1,13 @@
-use std::{fmt::Display, str::FromStr};
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
 use anyhow::{ensure, Result};
 use clap::Parser;
 use ratatui::style::Color as TuiColor;
 
-use crate::interface::ui::list::BorderStyle;
+use crate::interface::ui::list::customizations::BorderStyle;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -85,7 +88,7 @@ impl FromStr for Color {
     }
 }
 impl Display for Color {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
         let mut text = |text| formatter.write_str(text);
 
         match self.0 {
