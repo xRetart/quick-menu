@@ -1,15 +1,14 @@
 use clap::ValueEnum;
-use textwrap::{wrap, Options};
-use tui::{
+use ratatui::{
     style::{Modifier, Style},
-    text::{Span, Spans},
-    widgets::{Block, BorderType, Borders, ListItem, ListState},
+    text::{Line, Span},
+    widgets::{Block, BorderType, Borders, List as TuiList, ListItem, ListState},
 };
+use textwrap::{wrap, Options};
 
 use super::{colorscheme::TextColor, Colorscheme};
 use crate::{interface::ui::Coordinate, parse::MenuOption};
 
-type TuiList<'l> = tui::widgets::List<'l>;
 pub struct List<'l> {
     pub state: State,
     pub list: TuiList<'l>,
@@ -70,12 +69,12 @@ impl<'l> List<'l> {
         );
         let mut wrapped_display = wrap.iter().map(|line| Span::styled(line.clone(), display_style));
         let mut text = Vec::with_capacity(2);
-        text.push(Spans::from(vec![
+        text.push(Line::from(vec![
             Span::styled(format!(" {key} "), key_style),
             Span::styled(" ", display_style),
             wrapped_display.next().unwrap(),
         ]));
-        text.extend(wrapped_display.map(|line| Spans::from(vec![line])));
+        text.extend(wrapped_display.map(|line| Line::from(vec![line])));
 
         ListItem::new(text)
     }
@@ -108,7 +107,7 @@ pub enum BorderStyle {
 }
 
 impl BorderStyle {
-    pub fn apply(self, block: Block<'_>) -> Block<'_> {
+    pub const fn apply(self, block: Block<'_>) -> Block<'_> {
         match self {
             Self::None => block.borders(Borders::NONE),
             Self::Plain => block.borders(Borders::ALL).border_type(BorderType::Plain),

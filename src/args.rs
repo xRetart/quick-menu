@@ -2,26 +2,26 @@ use std::{fmt::Display, str::FromStr};
 
 use anyhow::{ensure, Result};
 use clap::Parser;
-use tui::style::Color as TuiColor;
+use ratatui::style::Color as TuiColor;
 
 use crate::interface::ui::list::BorderStyle;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    #[arg(long, default_value_t = Color(tui::style::Color::Black))]
+    #[arg(long, default_value_t = Color(TuiColor::Black))]
     pub color_selected_fg: Color,
 
-    #[arg(long, default_value_t = Color(tui::style::Color::Green))]
+    #[arg(long, default_value_t = Color(TuiColor::Green))]
     pub color_selected_bg: Color,
 
-    #[arg(long, default_value_t = Color(tui::style::Color::Black))]
+    #[arg(long, default_value_t = Color(TuiColor::Black))]
     pub color_key_fg: Color,
 
-    #[arg(long, default_value_t = Color(tui::style::Color::White))]
+    #[arg(long, default_value_t = Color(TuiColor::White))]
     pub color_key_bg: Color,
 
-    #[arg(long, default_value_t = Color(tui::style::Color::White))]
+    #[arg(long, default_value_t = Color(TuiColor::White))]
     pub color_border: Color,
 
     #[arg(long, short, value_enum, default_value_t = BorderStyle::Thick)]
@@ -29,9 +29,9 @@ pub struct Cli {
 }
 
 #[derive(Clone)]
-pub struct Color(tui::style::Color);
+pub struct Color(TuiColor);
 impl Color {
-    fn hex_to_rgb(hex: &str) -> Result<tui::style::Color> {
+    fn hex_to_rgb(hex: &str) -> Result<TuiColor> {
         let mut hex = hex.chars();
         ensure!(hex.clone().count() == 7, "six hex digits are necessary for a color");
 

@@ -4,7 +4,7 @@ pub mod list;
 pub use colorscheme::Colorscheme;
 use list::BorderStyle;
 pub use list::List;
-use tui::{backend::Backend, layout::Rect, Frame};
+use ratatui::{backend::Backend, layout::Rect, Frame};
 
 use crate::parse::MenuOption;
 
@@ -21,6 +21,7 @@ pub struct Coordinate {
 }
 pub struct Ui<'o> {
     pub options: List<'o>,
+    // pub query: Query,
     area: Option<Rect>,
 }
 impl<'o> Ui<'o> {

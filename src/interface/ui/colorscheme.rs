@@ -1,6 +1,6 @@
 use crate::args::Cli;
 
-pub type Color = tui::style::Color;
+pub type Color = ratatui::style::Color;
 
 #[derive(Clone, Copy)]
 pub struct TextColor {

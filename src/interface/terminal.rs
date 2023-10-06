@@ -7,10 +7,10 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use io::stderr;
-use tui::{backend::CrosstermBackend, Frame};
+use ratatui::{backend::CrosstermBackend, Frame, Terminal as TuiTerminal};
 
 pub type Backend = CrosstermBackend<Stderr>;
-pub struct Terminal(tui::Terminal<Backend>);
+pub struct Terminal(TuiTerminal<Backend>);
 
 impl Terminal {
     pub fn inside<R, F>(action: F) -> Result<R>
@@ -32,8 +32,7 @@ impl Terminal {
         execute!(stderr, EnterAlternateScreen, EnableMouseCapture,)
             .context("Entering alternate screen failed.")?;
         let backend = Backend::new(stderr);
-        let inner =
-            tui::Terminal::new(backend).context("Creating internal tui terminal failed.")?;
+        let inner = TuiTerminal::new(backend).context("Creating internal tui terminal failed.")?;
         Ok(Self(inner))
     }
     fn close(self) -> Result<()> {
