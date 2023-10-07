@@ -68,7 +68,7 @@ fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choi
             },
             KeyCode::Backspace => {
                 if matches!(ui.input_mode, InputMode::Searching) {
-                    ui.query.string.pop();
+                    ui.pop_query();
                 }
             },
             KeyCode::Enter => return Some(Choice::Chosen(ui.list.state.selected().unwrap_or(0))),

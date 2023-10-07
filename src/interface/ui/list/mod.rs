@@ -1,10 +1,13 @@
 pub mod customizations;
 pub mod state;
 
+use std::borrow::Cow;
+
 pub use customizations::Customizations;
+use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use ratatui::{
     prelude::{Backend, Rect},
-    style::{Modifier, Style},
+    style::{Modifier, Style, Stylize},
     text::{Line, Span},
     widgets::{Block, List as TuiList, ListItem},
     Frame,
@@ -42,6 +45,7 @@ impl<'l> List<'l> {
         options: &'l [MenuOption],
         width: u16,
         Customizations { colorscheme, border_style }: &Customizations,
+        query: Option<&str>,
     ) -> TuiList<'l> {
         let border_size = if matches!(border_style, BorderStyle::None) { 0 } else { 2 };
         let style = Style::default();
@@ -53,12 +57,17 @@ impl<'l> List<'l> {
 
         let items = options
             .iter()
-            .map(|text| Self::create_item(text, width - border_size, colorscheme.key))
+            .map(|text| Self::create_item(text, width - border_size, colorscheme.key, query))
             .collect::<Vec<_>>();
         let block = border_style.apply(Block::default().style(style).border_style(border_color));
         TuiList::new(items).highlight_style(highlight_style).block(block)
     }
-    fn create_item(option: &'l MenuOption, width: u16, key_color: CellColor) -> ListItem<'l> {
+    fn create_item(
+        option: &'l MenuOption,
+        width: u16,
+        key_color: CellColor,
+        query: Option<&str>,
+    ) -> ListItem<'l> {
         let MenuOption { key, output: _, display } = option;
 
         let default_style = Style::default();
@@ -72,20 +81,42 @@ impl<'l> List<'l> {
             display,
             Options::new(usize::try_from(width - 4).unwrap()).subsequent_indent("    "),
         );
-        let mut wrapped_display = wrap.iter().map(|line| Span::styled(line.clone(), display_style));
+        let mut wrapped_display =
+            wrap.iter().map(|line| Self::style_display(line.clone(), query, display_style));
+        // wrap.iter().map(|line| vec![Span::styled(line.clone(), display_style)]);
+        let mut first_line =
+            vec![Span::styled(format!(" {key} "), key_style), Span::styled(" ", display_style)];
+        first_line.extend(wrapped_display.next().unwrap());
+
         let mut text = Vec::with_capacity(2);
-        text.push(Line::from(vec![
-            Span::styled(format!(" {key} "), key_style),
-            Span::styled(" ", display_style),
-            wrapped_display.next().unwrap(),
-        ]));
-        text.extend(wrapped_display.map(|line| Line::from(vec![line])));
+        text.push(Line::from(first_line));
+        text.extend(wrapped_display.map(Line::from));
 
         ListItem::new(text)
     }
-    pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>, chunk: Rect) {
+    fn style_display<'s>(string: Cow<'s, str>, query: Option<&str>, style: Style) -> Vec<Span<'s>> {
+        let matches = |query| SkimMatcherV2::default().fuzzy_indices(&string, query);
+        if let Some((_, indices)) = query.and_then(matches) {
+            let highlight_style = style.red();
+            string
+                .char_indices()
+                .map(|(index, character)| {
+                    if indices.contains(&index) {
+                        Span::styled(String::from(character), highlight_style)
+                    }
+                    else {
+                        Span::styled(String::from(character), style)
+                    }
+                })
+                .collect()
+        }
+        else {
+            vec![Span::styled(string, style)]
+        }
+    }
+    pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>, chunk: Rect, query: Option<&str>) {
         let area = self.centered(chunk);
-        let widget = Self::create_widget(self.data, area.width, &self.customizations);
+        let widget = Self::create_widget(self.data, area.width, &self.customizations, query);
         let state = &mut self.state.inner;
 
         frame.render_stateful_widget(widget, area, state);
@@ -114,9 +145,29 @@ impl<'l> List<'l> {
         (area.x ..= area.x + area.width).contains(&x).then_some((y - area.y - 1) as usize)
     }
     pub fn query(&mut self, term: &str) {
-        let term = term.to_lowercase();
-        let matches = |subject: String| subject.to_lowercase().starts_with(&term);
-        let index = self.data.iter().position(|option| matches(option.to_string()));
+        let matcher = SkimMatcherV2::default();
+        let score = |subject: String| matcher.fuzzy_match(&subject, term);
+        let max = |holder: Option<(usize, i64)>, contender| {
+            holder.zip(contender).map_or_else(
+                || holder.or(contender),
+                |(holder, contender)| {
+                    if contender.1 > holder.1 {
+                        Some(contender)
+                    }
+                    else {
+                        Some(holder)
+                    }
+                },
+            )
+        };
+        let index = self
+            .data
+            .iter()
+            .enumerate()
+            .map(|(index, option)| score(option.to_string()).map(|score| (index, score)))
+            .reduce(max)
+            .unwrap()
+            .map(|(index, _)| index);
         self.state.inner.select(index);
     }
 }

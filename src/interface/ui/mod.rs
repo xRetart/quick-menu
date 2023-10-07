@@ -59,14 +59,22 @@ impl<'o> Ui<'o> {
                     width: area.width,
                 };
 
-                self.list.render(frame, list_area);
+                self.list.render(frame, list_area, Some(&self.query.string));
                 self.query.render(frame, query_area);
             },
-            InputMode::Selecting => self.list.render(frame, frame.size()),
+            InputMode::Selecting => self.list.render(frame, frame.size(), None),
         }
     }
     pub fn append_query(&mut self, character: char) {
         self.query.string.push(character);
+        self.update_query();
+    }
+
+    pub fn pop_query(&mut self) {
+        self.query.string.pop();
+        self.update_query();
+    }
+    fn update_query(&mut self) {
         self.list.query(&self.query.string);
     }
 }
