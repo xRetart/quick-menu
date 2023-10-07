@@ -15,12 +15,14 @@ use ratatui::{
 use textwrap::{wrap, Options};
 
 use self::{customizations::BorderStyle, state::State};
-use super::colorscheme::CellColor;
-use crate::{interface::ui::Coordinate, parse::MenuOption};
+use crate::{
+    interface::ui::{colors::CellColor, Vector},
+    parse::MenuOption,
+};
 
 pub struct List<'l> {
     pub state: State,
-    pub dimensions: Coordinate,
+    pub dimensions: Vector,
     data: &'l [MenuOption],
     customizations: Customizations,
     area: Option<Rect>,
@@ -35,7 +37,7 @@ impl<'l> List<'l> {
             if matches!(customizations.border_style, BorderStyle::None) { 0 } else { 2 };
         let width = options_width(data);
         let height = u16::try_from(data.len()).unwrap();
-        let dimensions = Coordinate { x: width + border_size, y: height + border_size };
+        let dimensions = Vector { x: width + border_size, y: height + border_size };
 
         let area = None;
 
@@ -121,7 +123,7 @@ impl<'l> List<'l> {
         frame.render_stateful_widget(widget, area, state);
         self.area = Some(area);
     }
-    pub fn select(&mut self, coordinate: Coordinate) -> Option<usize> {
+    pub fn select(&mut self, coordinate: Vector) -> Option<usize> {
         let position = self.area.and_then(|area| Self::row_in_area(area, coordinate));
         if position == self.state.selected() {
             position
@@ -131,7 +133,7 @@ impl<'l> List<'l> {
             None
         }
     }
-    fn row_in_area(area: Rect, Coordinate { x, y }: Coordinate) -> Option<usize> {
+    fn row_in_area(area: Rect, Vector { x, y }: Vector) -> Option<usize> {
         (area.x ..= area.x + area.width).contains(&x).then_some((y - area.y - 1) as usize)
     }
     pub fn query(&mut self, term: &str) {

@@ -11,7 +11,7 @@ use args::Cli;
 use clap::Parser;
 use interface::{
     events::{event_loop, Choice},
-    ui::{list::Customizations, Colorscheme},
+    ui::{widgets::list::Customizations, Colorscheme},
     Terminal,
     Ui,
 };

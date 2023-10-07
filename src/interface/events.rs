@@ -6,7 +6,7 @@ use event::{read, Event, KeyCode, KeyModifiers};
 
 use super::ui::InputMode;
 use crate::{
-    interface::{ui::Coordinate, Terminal, Ui},
+    interface::{ui::Vector, Terminal, Ui},
     parse::MenuOption,
 };
 
@@ -45,7 +45,7 @@ fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Choice>> {
 fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
     let x = mouse.column;
     let y = mouse.row;
-    let coordinate = Coordinate { x, y };
+    let coordinate = Vector { x, y };
 
     match mouse.kind {
         MouseEventKind::ScrollUp => ui.list.state.previous(),
