@@ -28,6 +28,17 @@ pub struct Coordinate {
     pub x: u16,
     pub y: u16,
 }
+impl Coordinate {
+    pub fn center_in(self, outer: Self) -> Rect {
+        let width = self.x.min(outer.x);
+        let height = self.y.min(outer.y);
+
+        let x = (outer.x - width) / 2;
+        let y = (outer.y - height) / 2;
+
+        Rect { x, y, width, height }
+    }
+}
 pub struct Ui<'o> {
     pub list: List<'o>,
     pub query: Query,
@@ -50,19 +61,23 @@ impl<'o> Ui<'o> {
 
         match self.input_mode {
             InputMode::Searching => {
-                let list_area =
-                    Rect { x: 0, y: 0, height: area.height - query_height, width: area.width };
+                let list_bounds = Coordinate { x: area.width, y: area.height - query_height };
+                let list_area = self.list.dimensions.center_in(list_bounds);
                 let query_area = Rect {
-                    x: 0,
-                    y: area.height - query_height,
+                    x: list_area.x,
+                    y: list_area.y + list_area.height,
                     height: query_height,
-                    width: area.width,
+                    width: list_area.width,
                 };
 
                 self.list.render(frame, list_area, Some(&self.query.string));
                 self.query.render(frame, query_area);
             },
-            InputMode::Selecting => self.list.render(frame, frame.size(), None),
+            InputMode::Selecting => {
+                let list_bounds = Coordinate { x: area.width, y: area.height };
+                let list_area = self.list.dimensions.center_in(list_bounds);
+                self.list.render(frame, list_area, None);
+            },
         }
     }
     pub fn append_query(&mut self, character: char) {

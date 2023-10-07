@@ -20,8 +20,8 @@ use crate::{interface::ui::Coordinate, parse::MenuOption};
 
 pub struct List<'l> {
     pub state: State,
+    pub dimensions: Coordinate,
     data: &'l [MenuOption],
-    dimensions: Coordinate,
     customizations: Customizations,
     area: Option<Rect>,
 }
@@ -39,7 +39,7 @@ impl<'l> List<'l> {
 
         let area = None;
 
-        Self { state, data, dimensions, customizations, area }
+        Self { state, dimensions, data, customizations, area }
     }
     fn create_widget(
         options: &'l [MenuOption],
@@ -114,22 +114,12 @@ impl<'l> List<'l> {
             vec![Span::styled(string, style)]
         }
     }
-    pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>, chunk: Rect, query: Option<&str>) {
-        let area = self.centered(chunk);
+    pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>, area: Rect, query: Option<&str>) {
         let widget = Self::create_widget(self.data, area.width, &self.customizations, query);
         let state = &mut self.state.inner;
 
         frame.render_stateful_widget(widget, area, state);
         self.area = Some(area);
-    }
-    fn centered(&self, outer: Rect) -> Rect {
-        let width = self.dimensions.x.min(outer.width);
-        let height = self.dimensions.y.min(outer.height);
-
-        let x = (outer.width - width) / 2;
-        let y = (outer.height - height) / 2;
-
-        Rect { x, y, width, height }
     }
     pub fn select(&mut self, coordinate: Coordinate) -> Option<usize> {
         let position = self.area.and_then(|area| Self::row_in_area(area, coordinate));
