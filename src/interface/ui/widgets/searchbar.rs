@@ -1,22 +1,25 @@
 use ratatui::{
     prelude::{Backend, Rect},
-    widgets::{Block, BorderType, Borders, Paragraph},
+    widgets::{Block, Paragraph},
     Frame,
 };
 
+use crate::interface::ui::Customizations;
+
 pub struct Searchbar {
     pub query: String,
+    customizations: Customizations,
 }
 
 impl Searchbar {
-    pub const fn new() -> Self {
+    pub const fn new(customizations: Customizations) -> Self {
         let string = String::new();
-        Self { query: string }
+        Self { query: string, customizations }
     }
     pub fn render<B: Backend>(&self, frame: &mut Frame<B>, destination: Rect) {
-        let block = Block::new().borders(Borders::ALL).border_type(BorderType::Thick);
+        let block = self.customizations.borders(Block::new());
         let scroll = self.scroll(destination.width);
-        let widget = Paragraph::new(self.query.clone()).block(block).scroll((0, scroll));
+        let widget = Paragraph::new(self.query.as_str()).block(block).scroll((0, scroll));
         frame.render_widget(widget, destination);
 
         let x = destination.x + self.cursor(destination.width);

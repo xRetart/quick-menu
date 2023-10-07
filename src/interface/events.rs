@@ -19,7 +19,7 @@ impl Choice {
     pub fn print(&self, options: &[MenuOption]) -> Result<()> {
         if let Self::Chosen(index) = self {
             let mut stdout = stdout().lock();
-            let chosen = options[*index].output.as_str();
+            let chosen = &options[*index].output;
             writeln!(stdout, "{chosen}")?;
         }
         Ok(())

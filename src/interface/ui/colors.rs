@@ -2,13 +2,13 @@ pub use ratatui::style::Color;
 
 use crate::args::Cli;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct CellColor {
     pub foreground: Color,
     pub background: Color,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Colorscheme {
     pub selected: CellColor,
     pub key: CellColor,

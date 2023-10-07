@@ -11,7 +11,7 @@ use args::Cli;
 use clap::Parser;
 use interface::{
     events::{event_loop, Choice},
-    ui::{widgets::list::Customizations, Colorscheme},
+    ui::{Colorscheme, Customizations},
     Terminal,
     Ui,
 };
@@ -31,7 +31,7 @@ fn run_ui(ui: Ui, options: &[MenuOption]) -> Result<Choice> {
     let event_loop = |terminal: &mut _| event_loop(terminal, ui, options);
     Terminal::inside(event_loop)?
 }
-fn create_ui(arguments: Cli, options: &[MenuOption]) -> Ui {
+fn create_ui<'o>(arguments: Cli, options: &'o [MenuOption<'static, 'static>]) -> Ui<'o> {
     let border_style = arguments.border_style;
     let colorscheme = Colorscheme::from_args(arguments);
     let customizations = Customizations { colorscheme, border_style };

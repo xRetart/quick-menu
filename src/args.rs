@@ -7,7 +7,7 @@ use anyhow::{ensure, Result};
 use clap::Parser;
 use ratatui::style::Color as TuiColor;
 
-use crate::interface::ui::widgets::list::customizations::BorderStyle;
+use crate::interface::ui::customizations::BorderStyle;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

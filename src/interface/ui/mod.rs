@@ -1,15 +1,17 @@
 pub mod colors;
+pub mod customizations;
 pub mod input_mode;
 pub mod vector;
 pub mod widgets;
 
 pub use colors::Colorscheme;
+pub use customizations::Customizations;
 pub use input_mode::InputMode;
 use ratatui::{backend::Backend, prelude::Rect, Frame};
 pub use vector::Vector;
 pub use widgets::list::List;
 
-use self::widgets::{list::Customizations, searchbar::Searchbar};
+use self::widgets::searchbar::Searchbar;
 use crate::parse::MenuOption;
 pub struct Ui<'o> {
     pub list: List<'o>,
@@ -17,9 +19,12 @@ pub struct Ui<'o> {
     pub input_mode: InputMode,
 }
 impl<'o> Ui<'o> {
-    pub fn new(options: &'o [MenuOption], customizations: Customizations) -> Self {
-        let list = List::new(options, customizations);
-        let query = Searchbar::new();
+    pub fn new(
+        options: &'o [MenuOption<'static, 'static>],
+        customizations: Customizations,
+    ) -> Self {
+        let list = List::new(options, customizations.clone());
+        let query = Searchbar::new(customizations);
         let input_mode = InputMode::Selecting;
 
         Self { list, searchbar: query, input_mode }

@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     fmt::{self, Display, Formatter},
     io::{self, stdin, BufRead},
     str::FromStr,
@@ -6,13 +7,12 @@ use std::{
 
 use anyhow::{anyhow, ensure, Context, Error, Result};
 
-#[derive(Clone)]
-pub struct MenuOption {
+pub struct MenuOption<'o, 'd> {
     pub key: char,
-    pub output: String,
-    pub display: String,
+    pub output: Cow<'o, str>,
+    pub display: Cow<'d, str>,
 }
-impl FromStr for MenuOption {
+impl<'o, 'd> FromStr for MenuOption<'o, 'd> {
     type Err = Error;
     fn from_str(line: &str) -> Result<Self, Self::Err> {
         let whitespace = |c: &char| c.is_whitespace();
@@ -25,20 +25,20 @@ impl FromStr for MenuOption {
         ensure!(matches!(chars.next(), Some(':')), anyhow!("Expected a separator"));
         let mut chars = chars.skip_while(whitespace);
 
-        let output = chars.by_ref().take_while(not_separator).collect::<String>();
+        let output = chars.by_ref().take_while(not_separator).collect();
         let display = chars.collect();
 
         Ok(Self { key, output, display })
     }
 }
-impl Display for MenuOption {
+impl<'o, 'd> Display for MenuOption<'o, 'd> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let Self { key: _, output: _, display } = self;
         write!(f, "{display}")
     }
 }
 
-pub fn from_stdin() -> Result<Box<[MenuOption]>> {
+pub fn from_stdin() -> Result<Box<[MenuOption<'static, 'static>]>> {
     let parse = |line: String| {
         line.parse::<MenuOption>()
             .with_context(|| format!("Failed to parse following line from stdin: \"{line}\""))

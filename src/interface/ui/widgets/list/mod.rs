@@ -1,9 +1,7 @@
-pub mod customizations;
 pub mod state;
 
 use std::borrow::Cow;
 
-pub use customizations::Customizations;
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use ratatui::{
     prelude::{Backend, Rect},
@@ -14,27 +12,26 @@ use ratatui::{
 };
 use textwrap::{wrap, Options};
 
-use self::{customizations::BorderStyle, state::State};
+use self::state::State;
 use crate::{
-    interface::ui::{colors::CellColor, Vector},
+    interface::ui::{colors::CellColor, customizations::Customizations, Vector},
     parse::MenuOption,
 };
 
 pub struct List<'l> {
     pub state: State,
     pub dimensions: Vector,
-    data: &'l [MenuOption],
+    data: &'l [MenuOption<'static, 'static>],
     customizations: Customizations,
     area: Option<Rect>,
 }
 
 impl<'l> List<'l> {
-    pub fn new(data: &'l [MenuOption], customizations: Customizations) -> Self {
+    pub fn new(data: &'l [MenuOption<'static, 'static>], customizations: Customizations) -> Self {
         let length = data.len();
         let state = State::with_length(length);
 
-        let border_size =
-            if matches!(customizations.border_style, BorderStyle::None) { 0 } else { 2 };
+        let border_size = customizations.border_style.size();
         let width = options_width(data);
         let height = u16::try_from(data.len()).unwrap();
         let dimensions = Vector { x: width + border_size, y: height + border_size };
@@ -46,28 +43,26 @@ impl<'l> List<'l> {
     fn create_widget(
         options: &'l [MenuOption],
         width: u16,
-        Customizations { colorscheme, border_style }: &Customizations,
+        customizations @ Customizations { colorscheme, border_style }: &Customizations,
         query: Option<&str>,
     ) -> TuiList<'l> {
-        let border_size = if matches!(border_style, BorderStyle::None) { 0 } else { 2 };
-        let style = Style::default();
-        let border_color = style.fg(colorscheme.border);
-        let highlight_style = style
+        let highlight_style = Style::default()
             .add_modifier(Modifier::BOLD)
             .bg(colorscheme.selected.background)
             .fg(colorscheme.selected.foreground);
 
+        let item_width = width - border_style.size();
         let items = options
             .iter()
-            .map(|text| Self::create_item(text, width - border_size, colorscheme.key, query))
+            .map(|text| Self::create_item(text, item_width, &colorscheme.key, query))
             .collect::<Vec<_>>();
-        let block = border_style.apply(Block::default().style(style).border_style(border_color));
+        let block = customizations.borders(Block::default());
         TuiList::new(items).highlight_style(highlight_style).block(block)
     }
     fn create_item(
         option: &'l MenuOption,
         width: u16,
-        key_color: CellColor,
+        key_color: &CellColor,
         query: Option<&str>,
     ) -> ListItem<'l> {
         let MenuOption { key, output: _, display } = option;
@@ -84,8 +79,7 @@ impl<'l> List<'l> {
             Options::new(usize::try_from(width - 4).unwrap()).subsequent_indent("    "),
         );
         let mut wrapped_display =
-            wrap.iter().map(|line| Self::style_display(line.clone(), query, display_style));
-        // wrap.iter().map(|line| vec![Span::styled(line.clone(), display_style)]);
+            wrap.into_iter().map(|line| Self::style_display(line, query, display_style));
         let mut first_line =
             vec![Span::styled(format!(" {key} "), key_style), Span::styled(" ", display_style)];
         first_line.extend(wrapped_display.next().unwrap());
