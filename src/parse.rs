@@ -1,7 +1,9 @@
 use std::{
     borrow::Cow,
     fmt::{self, Display, Formatter},
-    io::{self, stdin, BufRead},
+    fs::File,
+    io::{self, stdin, BufRead, BufReader},
+    path::Path,
     str::FromStr,
 };
 
@@ -38,7 +40,7 @@ impl<'o, 'd> Display for MenuOption<'o, 'd> {
     }
 }
 
-pub fn from_stdin() -> Result<Box<[MenuOption<'static, 'static>]>> {
+pub fn from_file(path: Option<&Path>) -> Result<Box<[MenuOption<'static, 'static>]>> {
     let parse = |line: String| {
         line.parse::<MenuOption>()
             .with_context(|| format!("Failed to parse following line from stdin: \"{line}\""))
@@ -46,8 +48,12 @@ pub fn from_stdin() -> Result<Box<[MenuOption<'static, 'static>]>> {
     let parse_line =
         |line: io::Result<_>| line.context("Reading line from stdin failed.").and_then(parse);
 
-    let stdin = stdin().lock();
-    let options = stdin.lines().map(parse_line).collect::<Result<Box<_>>>()?;
+    let options = match path {
+        Some(path) => {
+            BufReader::new(File::open(path)?).lines().map(parse_line).collect::<Result<Box<_>>>()?
+        },
+        None => stdin().lines().map(parse_line).collect::<Result<Box<_>>>()?,
+    };
     if options.is_empty() {
         Err(anyhow!("No options where given."))
     }

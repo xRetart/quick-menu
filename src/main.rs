@@ -15,12 +15,12 @@ use interface::{
     Terminal,
     Ui,
 };
-use parse::{from_stdin, MenuOption};
+use parse::{from_file, MenuOption};
 
 #[unix_sigpipe = "inherit"]
 fn main() -> Result<()> {
     let arguments = Cli::parse();
-    let options = from_stdin()?;
+    let options = from_file(arguments.options_file.as_deref())?;
 
     let ui = create_ui(arguments, &options);
     let choice = run_ui(ui, &options)?;

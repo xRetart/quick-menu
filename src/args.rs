@@ -1,5 +1,6 @@
 use std::{
     fmt::{Display, Formatter},
+    path::PathBuf,
     str::FromStr,
 };
 
@@ -29,6 +30,9 @@ pub struct Cli {
 
     #[arg(long, short, value_enum, default_value_t = BorderStyle::Thick)]
     pub border_style: BorderStyle,
+
+    #[arg(long, short)]
+    pub options_file: Option<PathBuf>,
 }
 
 #[derive(Clone)]
