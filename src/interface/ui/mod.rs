@@ -24,10 +24,10 @@ impl<'o> Ui<'o> {
         customizations: Customizations,
     ) -> Self {
         let list = List::new(options, customizations.clone());
-        let query = Searchbar::new(customizations);
+        let searchbar = Searchbar::new(customizations);
         let input_mode = InputMode::Selecting;
 
-        Self { list, searchbar: query, input_mode }
+        Self { list, searchbar, input_mode }
     }
     pub fn render<B: Backend>(&mut self, frame: &mut Frame<B>) {
         let area = frame.size();

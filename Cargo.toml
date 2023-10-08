@@ -15,3 +15,5 @@ textwrap = "0.16.0"
 crossterm = "0.27.0"
 ratatui = "0.23.0"
 fuzzy-matcher = "0.3.7"
+confy = "0.5.1"
+serde = { version = "1.0.188", features = ["derive"] }

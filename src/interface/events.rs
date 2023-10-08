@@ -8,6 +8,7 @@ use super::ui::InputMode;
 use crate::{
     interface::{ui::Vector, Terminal, Ui},
     parse::MenuOption,
+    Config,
 };
 
 pub enum Choice {
@@ -25,19 +26,25 @@ impl Choice {
         Ok(())
     }
 }
-pub fn event_loop(terminal: &mut Terminal, mut ui: Ui, options: &[MenuOption]) -> Result<Choice> {
+pub fn event_loop(
+    terminal: &mut Terminal,
+    mut ui: Ui,
+    options: &[MenuOption],
+    config: &Config,
+) -> Result<Choice> {
     let mut choice = None;
     while choice.is_none() {
         terminal
             .draw(|frame| ui.render(frame))
             .context("Drawing the rendered inteface to the terminal failed.")?;
-        choice = handle_event(&mut ui, options).context("Handling the incoming event failed.")?;
+        choice = handle_event(&mut ui, options, config)
+            .context("Handling the incoming event failed.")?;
     }
     Ok(choice.unwrap())
 }
-fn handle_event(ui: &mut Ui, options: &[MenuOption]) -> Result<Option<Choice>> {
+fn handle_event(ui: &mut Ui, options: &[MenuOption], config: &Config) -> Result<Option<Choice>> {
     match read().context("Reading event from backend failed.")? {
-        Event::Key(key) => Ok(handle_key(key, ui, options)),
+        Event::Key(key) => Ok(handle_key(key, ui, options, config)),
         Event::Mouse(mouse) => Ok(handle_mouse(mouse, ui).map(Choice::Chosen)),
         _ => Ok(None),
     }
@@ -56,7 +63,12 @@ fn handle_mouse(mouse: MouseEvent, ui: &mut Ui) -> Option<usize> {
     }
     None
 }
-fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choice> {
+fn handle_key(
+    key: KeyEvent,
+    ui: &mut Ui,
+    options: &[MenuOption],
+    config: &Config,
+) -> Option<Choice> {
     match key.modifiers {
         KeyModifiers::NONE => match key.code {
             KeyCode::Down => ui.list.state.next(),
@@ -76,9 +88,9 @@ fn handle_key(key: KeyEvent, ui: &mut Ui, options: &[MenuOption]) -> Option<Choi
             _ => {},
         },
         KeyModifiers::CONTROL => match key.code {
-            KeyCode::Char('n') => ui.list.state.next(),
-            KeyCode::Char('e') => ui.list.state.previous(),
-            KeyCode::Char('s') => ui.input_mode.switch(),
+            KeyCode::Char(c) if c == config.down_key => ui.list.state.previous(),
+            KeyCode::Char(c) if c == config.up_key => ui.list.state.next(),
+            KeyCode::Char(c) if c == config.search_key => ui.input_mode.switch(),
             _ => (),
         },
         _ => {},
